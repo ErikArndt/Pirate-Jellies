@@ -1,6 +1,6 @@
 import math
 import pygame
-import linesCross
+import functions
 pygame.init()
 
 red = (255, 0, 0)
@@ -68,7 +68,7 @@ while running:
 ##                sightColour = red
 ##            else:
 ##                sightColour = green
-    intersection = linesCross.linesCross(wallStart, wallEnd, (x,y), (circlePos[0], circlePos[1]), False)
+    intersection = functions.linesCross(wallStart, wallEnd, (x,y), (circlePos[0], circlePos[1]), False)
     if intersection != (-1,-1):
         sightColour = red
     else:
