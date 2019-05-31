@@ -1,6 +1,6 @@
 import math ## We'll probably end up needing this eventually
 import pygame
-import angles
+import functions
 
 pygame.mixer.pre_init(22050, -16, 2, 2048)
 pygame.mixer.init()
@@ -73,7 +73,7 @@ class enemy:
         moves the enemy toward the given player (i.e. captain). Yes, this is
         actually physics.
         '''
-        angle = angles.angleTo(self.x, self.y, hero.x, hero.y)
+        angle = functions.angleTo(self.x, self.y, hero.x, hero.y)
         self.xAccel = self.accel * math.cos(math.radians(angle))
         self.yAccel = self.accel * math.sin(math.radians(angle))
         self.xSpeed += self.xAccel
@@ -172,7 +172,6 @@ class player:
 ## Main loop
 captain = player(500, 400)
 jelly = enemy(200, 200)
-print(camYpos)
 
 running = True
 while running:
