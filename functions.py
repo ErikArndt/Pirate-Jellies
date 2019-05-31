@@ -96,7 +96,31 @@ def linesCross (line1S, line1E, line2S, line2E, ray):
     
     return output
 
-
+def checkLineOfSight(lineS, lineE, rect, ray):
+    #Returns the point where a line first intersects with a rectangle.
+    #lineS is the starting coordinates of the lines (x,y), and lineE is the end coordinates.
+    #The output is the first collision travelling from start to end.
+    #rect is the coordinates of the top left corner, and the widht/height (x, y, width, height)
+    #ray is a boolean, if True the line will continue past its end coordinates.
+    rectX, rectY, width, height = rect
+    
+    if lineS[0] < rectX:
+        temp = linesCross(lineS, lineE, (rectX, rectY), (rectX, rectY+height), ray)
+        if temp != (-1, -1):
+            return(temp)
+    else:
+        temp = linesCross(lineS, lineE, (rectX+width, rectY), (rectX+width, rectY+height), ray)
+        if temp != (-1, -1):
+            return(temp)
+    if lineS[1] < rectY:
+        temp = linesCross(lineS, lineE, (rectX, rectY), (rectX+width, rectY), ray)
+        if temp != (-1, -1):
+            return(temp)
+    else:
+        temp = linesCross(lineS, lineE, (rectX, rectY+height), (rectX+width, rectY+height), ray)
+        if temp != (-1, -1):
+            return(temp)
+    return(-1, -1)
 
 def rectIntersect(rect1, rect2):
     #Tells you whether two rectangles overlap at any point.
