@@ -6,6 +6,8 @@ pygame.mixer.pre_init(22050, -16, 2, 2048)
 pygame.mixer.init()
 pygame.init()
 
+
+
 ## ********** CONSTANTS ***************
 white = pygame.Color('white')
 black = pygame.Color('black')
@@ -31,8 +33,8 @@ MAINMENU = 1
 PAUSED = 2
 
 ## Sounds - these are just placeholders
-boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
-kaboom = pygame.mixer.Sound('kaboom.wav')
+##boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
+##kaboom = pygame.mixer.Sound('kaboom.wav')
 
 ## Fonts - not in use, but probably will be eventually
 font1 = pygame.font.SysFont('timesnewroman', 24)
@@ -48,6 +50,15 @@ map1 = pygame.Surface((maplength, mapheight))
 camTracking = True # must be set before class definitions
 camXpos = -100 # these should always be negative
 camYpos = -100
+
+class wall:
+    def __init__(self, x, y, width, height):
+        self.posX = x
+        self.posY = y
+        self.width = width
+        self.height = height
+
+    def draw(self):
 
 class enemy:
     ## Will probably have to rework this once we get multiple enemy types
@@ -190,11 +201,11 @@ while running:
                 ## idk maybe space can be a pause button
                 print("Space doesn't do anything ya dingus")
                 
-        elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1): # left mouse button
-            boop.play()
-        
-        elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
-            kaboom.play()
+##        elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1): # left mouse button
+##            boop.play()
+##        
+##        elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
+##            kaboom.play()
      
     keys = pygame.key.get_pressed() # keys is a giant array of booleans
     if keys[pygame.K_w]:
