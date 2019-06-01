@@ -39,7 +39,7 @@ DIE = 3 # playing the death animation
 
 ## Sounds - these are just placeholders
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
-kaboom = pygame.mixer.Sound('kaboom.wav')
+kaboom = pygame.mixer.Sound('kaboorn.wav')
 
 ## Fonts - not in use, but probably will be eventually
 font1 = pygame.font.SysFont('timesnewroman', 24)
@@ -143,7 +143,7 @@ class PunchParticle(Particle):
                     e.hurt(self.damage)
         return
 
-class BeamParticle(particle):
+class BeamParticle(Particle):
     def __init__(self, mouseX, mouseY, hero, wifi):
         self.x1 = hero.x
         self.y1 = hero.y
@@ -160,7 +160,7 @@ class BeamParticle(particle):
         hero.state = BEAM
         self.checkDamage(enemyList)
 
-    def draw(self)
+    #def draw(self):
         # do the image thing, self.angle is the angle given by angleTo
         # 0 = east, 90 = south, etc.
 
