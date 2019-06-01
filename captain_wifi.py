@@ -17,8 +17,8 @@ yellow = pygame.Color('yellow')
 
 winheight = 600
 winlength = 800
-mapheight = 1000
-maplength = 1000
+mapheight = 2000
+maplength = 2000
 
 NORTH = 0
 EAST = 1
@@ -66,8 +66,8 @@ for i in range(len(idles)):
 
 map1 = pygame.Surface((maplength, mapheight))
 
-camXpos = -100 # these should always be negative
-camYpos = -100
+camXpos = -1000 # these should always be negative
+camYpos = -1400
 camFollowRect = (200, 200, winlength - 400, winheight - 400)
 
 class wall:
@@ -383,27 +383,33 @@ def drawParticles():
         i += 1
 
 ## Main loop
-captain = player(600, 600)
+captain = player(1400, 1800)
 
 enemies = []
-jelly1 = jelly(200, 200)
+jelly1 = jelly(1000, 1100)
 ## TODO: Change this so it adds jelly1 to the list
 
-walls = [wall(300, 200, 300, 200),
-         wall(0, 0, 1000, 2),
-         wall(0, 0, 2, 1000),
-         wall(1000, 0, 2, 1000),
-         wall(0, 1000, 1000, 2),
-         ]
+walls = [wall(0, 0, maplength, 2),
+         wall(0, 0, 2, mapheight),
+         wall(maplength, 0, 2, mapheight),
+         wall(0, mapheight, maplength, 2),
+         wall(0, 1600, 1200, 400),
+         wall(1600, 1000, 400, 1000),
+         wall(0, 0, 800, 2000),
+         wall(1200, 1000, 800, 200),
+         wall(0, 0, 2000, 200)]
 
 activeParticles = [] ## Array of particle effects
 
+gameClock = pygame.time.Clock()
 running = True
 while running:
+    gameClock.tick()
     pygame.time.delay(10) ## apparently this helps with inputs
     
     pygame.draw.rect(win, black, (0, 0, winlength, winheight))
     pygame.draw.rect(map1, white, (0, 0, maplength, mapheight)) # draws the background
+    ## This background is the main source of lag
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT: # what happens when X is pressed
@@ -446,17 +452,16 @@ while running:
     jelly1.moveToward(captain)
     jelly1.draw()
     
-    drawParticles()
-    
-    # just a sec, I'm gonna try drawing a semitransparent circle
-    s = pygame.Surface((200, 200), pygame.SRCALPHA)
-    pygame.draw.circle(s, (100, 100, 255, 100), (100, 100), 100)
-    map1.blit(s, (600, 600))    
+    drawParticles()  
     
     win.blit(map1, (camXpos, camYpos))
     
     ## Camera follow rect
     pygame.draw.rect(win, red, camFollowRect, 5)
+
+    ## FPS display
+    fpsText = font1.render(str(round(gameClock.get_fps())) + " FPS", False, blue)
+    win.blit(fpsText, (winlength - fpsText.get_size()[0], 0))
     
     pygame.display.update() # put this at the end of your main loop
 
