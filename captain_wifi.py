@@ -13,7 +13,7 @@ red = pygame.Color('red')
 blue = pygame.Color('blue')
 green = pygame.Color('green')
 yellow = pygame.Color('yellow')
-## I recently found out those were built in, so might as well use them
+## I recently found out t4hose were built in, so might as well use them
 
 winheight = 600
 winlength = 800
@@ -57,12 +57,13 @@ activeParticles = [] ## Array of particle effects
 
 class wall:
     def __init__(self, x, y, width, height):
-        self.posX = x
-        self.posY = y
+        self.x = x
+        self.y = y
         self.width = width
         self.height = height
 
     def draw(self):
+        pygame.draw.rect(map1, black, (self.x, self.y, self.width, self.height), 0)
 
 class particle:
     ## This is a superclass. Don't actually use it. Use it's subclasses.
@@ -186,17 +187,29 @@ class player:
         if not(self.state == FREE):
             return
         self.y -= self.speed
+
+        ## Collision stuffs
+        ## Going to loop this code for every active wall
+        if functions.checkCollision((wallA.x, wallA.y+wallA.height), (wallA.x+wallA.width, wallA.y+wallA.height),\
+                          (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 0, self.speed):
+            self.y = wallA.y + wallA.height + self.radius
+            return
+        
         ## Might put camera stuff in a class/module/something eventually, 
         ## but for now it's global
         global camYpos        
         if (self.y - self.radius + camYpos <= camFollowRect[1] \
             and camYpos < 0):
             camYpos += self.speed
-    
+
     def moveEast(self):
         if not(self.state == FREE):
             return        
         self.x += self.speed
+        if functions.checkCollision((wallA.x, wallA.y), (wallA.x, wallA.y+wallA.height),\
+                          (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 1, self.speed):
+            self.x = wallA.x - self.radius
+            return
         global camXpos
         if (self.x + self.radius + camXpos >= camFollowRect[0] + camFollowRect[2] \
             and camXpos > -maplength + winlength):
@@ -206,6 +219,10 @@ class player:
         if not(self.state == FREE):
             return        
         self.y += self.speed
+        if functions.checkCollision((wallA.x, wallA.y), (wallA.x+wallA.width, wallA.y),\
+                          (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 2, self.speed):
+            self.y = wallA.y - self.radius
+            return
         global camYpos
         if (self.y + self.radius + camYpos >= camFollowRect[1] + camFollowRect[3] \
             and camYpos > -mapheight + winheight):
@@ -215,6 +232,10 @@ class player:
         if not(self.state == FREE):
             return        
         self.x -= self.speed
+        if functions.checkCollision((wallA.x+wallA.width, wallA.y), (wallA.x+wallA.width, wallA.y+wallA.height),\
+                          (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 3, self.speed):
+            self.x = wallA.x + wallA.width + self.radius
+            return
         global camXpos
         if (self.x - self.radius + camXpos <= camFollowRect[0] \
             and camXpos < 0):
@@ -266,6 +287,7 @@ def drawParticles():
 ## Main loop
 captain = player(500, 400)
 jelly = enemy(200, 200)
+wallA = wall(300, 200, 300, 50)
 
 running = True
 while running:
@@ -310,6 +332,8 @@ while running:
     
     jelly.moveToward(captain)
     jelly.draw()
+
+    wallA.draw()
     
     drawParticles()
     

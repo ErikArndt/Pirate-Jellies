@@ -1,5 +1,6 @@
 import math
 
+#Not in use
 def linesCross (line1S, line1E, line2S, line2E, ray):
     #Gives you the point of intersection for two line segments, or one line segment and a ray.
     #The output is given as a set of coordinates (x, y)
@@ -25,6 +26,8 @@ def linesCross (line1S, line1E, line2S, line2E, ray):
 
     if line1S[0] != line1E[0]:
         if line2S[0] != line2E[0]:
+            if line2Slope == line1Slope:
+                return (-1, -1)
             PoIX = (line1Intcpt-line2Intcpt)/(line2Slope-line1Slope)
             if ray:
                 if PoIX >= line1S[0] and PoIX >= line2S[0] and PoIX <= line2E[0]:
@@ -59,9 +62,6 @@ def linesCross (line1S, line1E, line2S, line2E, ray):
     else:
         if ray:
             if line2S[0] != line2E[0]:
-                line2Slope = (line2E[1]-line2S[1])/(line2E[0]-line2S[0])
-                line2Intcpt = line2S[1] - line2S[0]*line2Slope
-
                 if line1S[0] >= line2E[0] or line1S[0] <= line2S[0]:
                     output = (-1, -1)
                 else:
@@ -77,9 +77,6 @@ def linesCross (line1S, line1E, line2S, line2E, ray):
                     output = (-1, -1)
         else:
             if line2S[0] != line2E[0]:
-                line2Slope = (line2E[1]-line2S[1])/(line2E[0]-line2S[0])
-                line2Intcpt = line2S[1] - line2S[0]*line2Slope
-
                 if line1S[0] >= line2E[0] or line1S[0] <= line2S[0]:
                     output = (-1, -1)
                 else:
@@ -89,21 +86,19 @@ def linesCross (line1S, line1E, line2S, line2E, ray):
                     else:
                         output = (-1, -1)
             else:
-                if line2S[0] == line1S[0]:
-                    output = (line1S[0], PoIY)
-                else:
-                    output = (-1, -1)
+                output = (-1, -1)
     
     return output
 
-def checkLineOfSight(lineS, lineE, rect, ray):
+#Not in use
+def checkRectWithLine(lineS, lineE, rect, ray=False):
     #Returns the point where a line first intersects with a rectangle.
     #lineS is the starting coordinates of the lines (x,y), and lineE is the end coordinates.
     #The output is the first collision travelling from start to end.
     #rect is the coordinates of the top left corner, and the widht/height (x, y, width, height)
     #ray is a boolean, if True the line will continue past its end coordinates.
     rectX, rectY, width, height = rect
-    
+
     if lineS[0] < rectX:
         temp = linesCross(lineS, lineE, (rectX, rectY), (rectX, rectY+height), ray)
         if temp != (-1, -1):
@@ -122,6 +117,7 @@ def checkLineOfSight(lineS, lineE, rect, ray):
             return(temp)
     return(-1, -1)
 
+#Not in use
 def rectIntersect(rect1, rect2):
     #Tells you whether two rectangles overlap at any point.
     #rect1 is the coordinates of the top left corner of the rectangle, as well as its width and height, (x, y, width, height).
@@ -133,6 +129,48 @@ def rectIntersect(rect1, rect2):
     else:
         output = False
     return output
+
+def checkCollision(edgeS, edgeE, rect, direction, speed):
+    #returns boolean, checks if rect (the player or some other object) is
+    #colliding with the wall (edge)
+    rectX, rectY, rectWidth, rectHeight = rect
+    #direction is a number from 0-3, N E S W respectively
+    #speed is the speed of the rectangle moving into the wall
+    #speed used to determine which wall the rect is touching when near a corner
+    if direction == 0:
+        if rectY >= edgeS[1] or rectY < edgeS[1]-speed:
+            output = False
+        elif edgeS[0] >= rectX+rectWidth or edgeE[0] <= rectX:
+            output = False
+        else:
+            output = True
+
+    if direction == 1:
+        if rectX+rectWidth <= edgeS[0] or rectX+rectWidth > edgeS[0]+speed:
+            output = False
+        elif edgeS[1] >= rectY+rectHeight or edgeE[1] <= rectY:
+            output = False
+        else:
+            output = True
+
+    if direction == 2:
+        if rectY+rectHeight <= edgeS[1] or rectY+rectHeight > edgeS[1]+speed:
+            output = False
+        elif edgeS[0] >= rectX+rectWidth or edgeE[0] <= rectX:
+            output = False
+        else:
+            output = True
+
+    if direction == 3:
+        if rectX >= edgeS[0] or rectX < edgeS[0]-speed:
+            output = False
+        elif edgeS[1] >= rectY+rectHeight or edgeE[1] <= rectY:
+            output = False
+        else:
+            output = True
+    return output
+    
+        
 
 def angleTo(x1, y1, x2, y2):
     '''
