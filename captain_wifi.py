@@ -189,57 +189,64 @@ class player:
         self.y -= self.speed
 
         ## Collision stuffs
-        ## Going to loop this code for every active wall
-        if functions.checkCollision((wallA.x, wallA.y+wallA.height), (wallA.x+wallA.width, wallA.y+wallA.height),\
-                          (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 0, self.speed):
-            self.y = wallA.y + wallA.height + self.radius
-            return
+        for i in range(len(walls)):
+            if functions.checkCollision((walls[i].x, walls[i].y+walls[i].height), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
+                              (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 0, self.speed):
+                self.y = walls[i].y + walls[i].height + self.radius
+                break
+        else: # Camera movement only happens if there are no wall collisions
         
-        ## Might put camera stuff in a class/module/something eventually, 
-        ## but for now it's global
-        global camYpos        
-        if (self.y - self.radius + camYpos <= camFollowRect[1] \
-            and camYpos < 0):
-            camYpos += self.speed
+            ## Might put camera stuff in a class/module/something eventually, 
+            ## but for now it's global
+            global camYpos        
+            if (self.y - self.radius + camYpos <= camFollowRect[1] \
+                and camYpos < 0):
+                camYpos += self.speed
 
     def moveEast(self):
         if not(self.state == FREE):
             return        
         self.x += self.speed
-        if functions.checkCollision((wallA.x, wallA.y), (wallA.x, wallA.y+wallA.height),\
-                          (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 1, self.speed):
-            self.x = wallA.x - self.radius
-            return
-        global camXpos
-        if (self.x + self.radius + camXpos >= camFollowRect[0] + camFollowRect[2] \
-            and camXpos > -maplength + winlength):
-            camXpos -= self.speed
+        for i in range(len(walls)):
+            if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x, walls[i].y+walls[i].height),\
+                              (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 1, self.speed):
+                self.x = walls[i].x - self.radius
+                break
+        else:
+            global camXpos
+            if (self.x + self.radius + camXpos >= camFollowRect[0] + camFollowRect[2] \
+                and camXpos > -maplength + winlength):
+                camXpos -= self.speed
     
     def moveSouth(self):
         if not(self.state == FREE):
             return        
         self.y += self.speed
-        if functions.checkCollision((wallA.x, wallA.y), (wallA.x+wallA.width, wallA.y),\
-                          (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 2, self.speed):
-            self.y = wallA.y - self.radius
-            return
-        global camYpos
-        if (self.y + self.radius + camYpos >= camFollowRect[1] + camFollowRect[3] \
-            and camYpos > -mapheight + winheight):
-            camYpos -= self.speed
+        for i in range(len(walls)):
+            if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x+walls[i].width, walls[i].y),\
+                              (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 2, self.speed):
+                self.y = walls[i].y - self.radius
+                break
+        else:
+            global camYpos
+            if (self.y + self.radius + camYpos >= camFollowRect[1] + camFollowRect[3] \
+                and camYpos > -mapheight + winheight):
+                camYpos -= self.speed
     
     def moveWest(self):
         if not(self.state == FREE):
             return        
         self.x -= self.speed
-        if functions.checkCollision((wallA.x+wallA.width, wallA.y), (wallA.x+wallA.width, wallA.y+wallA.height),\
-                          (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 3, self.speed):
-            self.x = wallA.x + wallA.width + self.radius
-            return
-        global camXpos
-        if (self.x - self.radius + camXpos <= camFollowRect[0] \
-            and camXpos < 0):
-            camXpos += self.speed
+        for i in range(len(walls)):
+            if functions.checkCollision((walls[i].x+walls[i].width, walls[i].y), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
+                              (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 3, self.speed):
+                self.x = walls[i].x + walls[i].width + self.radius
+                return
+        else:
+            global camXpos
+            if (self.x - self.radius + camXpos <= camFollowRect[0] \
+                and camXpos < 0):
+                camXpos += self.speed
         
     def checkFacing(self):
         '''
@@ -287,7 +294,12 @@ def drawParticles():
 ## Main loop
 captain = player(500, 400)
 jelly = enemy(200, 200)
-wallA = wall(300, 200, 300, 50)
+walls = [wall(300, 200, 300, 50),
+         wall(0, 0, 1000, 2),
+         wall(0, 0, 2, 1000),
+         wall(1000, 0, 2, 1000),
+         wall(0, 1000, 1000, 2),
+         ]
 
 running = True
 while running:
@@ -333,7 +345,8 @@ while running:
     jelly.moveToward(captain)
     jelly.draw()
 
-    wallA.draw()
+    for i in range(len(walls)):
+        walls[i].draw()
     
     drawParticles()
     
