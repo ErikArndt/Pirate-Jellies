@@ -138,7 +138,7 @@ def checkCollision(edgeS, edgeE, rect, direction, speed):
     #speed is the speed of the rectangle moving into the wall
     #speed used to determine which wall the rect is touching when near a corner
     if direction == 0:
-        if rectY >= edgeS[1] or rectY < edgeS[1]-speed:
+        if rectY >= edgeS[1] or rectY < edgeS[1]-speed*2:
             output = False
         elif edgeS[0] >= rectX+rectWidth or edgeE[0] <= rectX:
             output = False
@@ -146,7 +146,7 @@ def checkCollision(edgeS, edgeE, rect, direction, speed):
             output = True
 
     if direction == 1:
-        if rectX+rectWidth <= edgeS[0] or rectX+rectWidth > edgeS[0]+speed:
+        if rectX+rectWidth <= edgeS[0] or rectX+rectWidth > edgeS[0]+speed*2:
             output = False
         elif edgeS[1] >= rectY+rectHeight or edgeE[1] <= rectY:
             output = False
@@ -154,7 +154,7 @@ def checkCollision(edgeS, edgeE, rect, direction, speed):
             output = True
 
     if direction == 2:
-        if rectY+rectHeight <= edgeS[1] or rectY+rectHeight > edgeS[1]+speed:
+        if rectY+rectHeight <= edgeS[1] or rectY+rectHeight > edgeS[1]+speed*2:
             output = False
         elif edgeS[0] >= rectX+rectWidth or edgeE[0] <= rectX:
             output = False
@@ -162,7 +162,7 @@ def checkCollision(edgeS, edgeE, rect, direction, speed):
             output = True
 
     if direction == 3:
-        if rectX >= edgeS[0] or rectX < edgeS[0]-speed:
+        if rectX >= edgeS[0] or rectX < edgeS[0]-speed*2:
             output = False
         elif edgeS[1] >= rectY+rectHeight or edgeE[1] <= rectY:
             output = False

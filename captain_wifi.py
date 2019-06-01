@@ -163,7 +163,36 @@ class enemy:
             self.ySpeed /= scaleFactor
         
         self.x += self.xSpeed
+        if self.xSpeed > 0:
+            for i in range(len(walls)):
+                if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x, walls[i].y+walls[i].height),\
+                                  (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 1, self.xSpeed):
+                    self.x = walls[i].x - self.radius
+                    self.xSpeed = 0
+                    break
+        elif self.xSpeed < 0:
+            for i in range(len(walls)):
+                if functions.checkCollision((walls[i].x+walls[i].width, walls[i].y), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
+                                  (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 3, -self.xSpeed):
+                    self.x = walls[i].x + walls[i].width + self.radius
+                    self.xSpeed = 0
+                    break
         self.y += self.ySpeed
+        if self.ySpeed < 0:
+            for i in range(len(walls)):
+                if functions.checkCollision((walls[i].x, walls[i].y+walls[i].height), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
+                                  (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 0, -self.ySpeed):
+                    self.y = walls[i].y + walls[i].height + self.radius
+                    self.ySpeed = 0
+                    break
+        elif self.ySpeed > 0:
+            for i in range(len(walls)):
+                if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x+walls[i].width, walls[i].y),\
+                                  (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 2, self.ySpeed):
+                    self.y = walls[i].y - self.radius
+                    self.ySpeed = 0
+                    break
+            
         self.x = round(self.x)
         self.y = round(self.y)
 
@@ -262,7 +291,7 @@ class player:
             if functions.checkCollision((walls[i].x+walls[i].width, walls[i].y), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
                               (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 3, self.speed):
                 self.x = walls[i].x + walls[i].width + self.radius
-                return
+                break
         else:
             global camXpos
             if (self.x - self.radius + camXpos <= camFollowRect[0] \
@@ -315,7 +344,7 @@ def drawParticles():
 ## Main loop
 captain = player(500, 400)
 jelly = enemy(200, 200)
-walls = [wall(300, 200, 300, 50),
+walls = [wall(300, 200, 300, 200),
          wall(0, 0, 1000, 2),
          wall(0, 0, 2, 1000),
          wall(1000, 0, 2, 1000),
