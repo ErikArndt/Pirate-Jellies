@@ -1,6 +1,8 @@
 import math ## We'll probably end up needing this eventually
 import pygame
 import functions
+import maps
+import enemies
 
 pygame.mixer.pre_init(22050, -16, 2, 2048)
 pygame.mixer.init()
@@ -13,12 +15,10 @@ red = pygame.Color('red')
 blue = pygame.Color('blue')
 green = pygame.Color('green')
 yellow = pygame.Color('yellow')
-## I recently found out t4hose were built in, so might as well use them
+## I recently found out those were built in, so might as well use them
 
-winheight = 600
 winlength = 800
-mapheight = 1500
-maplength = 1500
+winheight = 600
 
 NORTH = 0
 EAST = 1
@@ -64,8 +64,10 @@ for i in range(len(idles)):
     idles[i] = pygame.transform.scale(idles[i], (50, 125))
 
 ## ****************************************
-
-map1 = pygame.Surface((maplength, mapheight))
+    
+maplength = maps.mapSizes[1][0]
+mapheight = maps.mapSizes[1][1]
+currentMap = pygame.Surface((maplength, mapheight))
 
 camXpos = -300 # these should always be negative
 camYpos = -900
@@ -77,7 +79,7 @@ class wifi:
         self.y = y
         self.radius = radius
     def draw(self):
-        pygame.draw.ellipse(map1, blue, (self.x-self.radius, self.y-self.radius, \
+        pygame.draw.ellipse(currentMap, blue, (self.x-self.radius, self.y-self.radius, \
                                          self.radius*2, self.radius*2), 5)
 
 class wall:
@@ -88,7 +90,7 @@ class wall:
         self.height = height
 
     def draw(self):
-        pygame.draw.rect(map1, black, (self.x, self.y, self.width, self.height), 0)
+        pygame.draw.rect(currentMap, black, (self.x, self.y, self.width, self.height), 0)
 
 class particle:
     ## This is a superclass. Don't actually use it. Use it's subclasses.
@@ -131,7 +133,7 @@ class punchParticle(particle):
         self.checkDamage(enemies)
     
     def draw(self):
-        pygame.draw.rect(map1, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
+        pygame.draw.rect(currentMap, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
     
     def stop(self):
         self.owner.state = FREE
@@ -197,10 +199,10 @@ class jelly(enemy):
     
     def draw(self):
         if self.state == FREE:
-            pygame.draw.rect(map1, yellow, (self.x - self.xRad, self.y - self.yRad, \
+            pygame.draw.rect(currentMap, yellow, (self.x - self.xRad, self.y - self.yRad, \
                                             self.xRad*2, self.yRad*2))
         elif self.state == HURT:
-            pygame.draw.rect(map1, (255, 255, 5 + 25*self.animTimers['hurt']), \
+            pygame.draw.rect(currentMap, (255, 255, 5 + 25*self.animTimers['hurt']), \
                              (self.x - self.xRad, self.y - self.yRad, self.xRad*2, self.yRad*2))
             ## Update the animations and/or state
             if self.animTimers['hurt'] <= 0:
@@ -209,11 +211,11 @@ class jelly(enemy):
                 self.animTimers['hurt'] -= 1
         
         elif self.state == DIE:
-            pygame.draw.rect(map1, yellow, (self.x - self.xRad, self.y - self.yRad, \
+            pygame.draw.rect(currentMap, yellow, (self.x - self.xRad, self.y - self.yRad, \
                                             self.xRad*2, self.yRad*2))
-            pygame.draw.line(map1, red, (self.x - self.xRad, self.y - self.yRad), \
+            pygame.draw.line(currentMap, red, (self.x - self.xRad, self.y - self.yRad), \
                              (self.x + self.xRad, self.y + self.yRad), 2)
-            pygame.draw.line(map1, red, (self.x - self.xRad, self.y + self.yRad), \
+            pygame.draw.line(currentMap, red, (self.x - self.xRad, self.y + self.yRad), \
                              (self.x + self.xRad, self.y - self.yRad), 2)
             ## Update the animations and/or state
             if self.animTimers['die'] <= 0:
@@ -304,7 +306,7 @@ class player:
         self.x = startingX
         self.y = startingY
         self.facing = NORTH
-        self.speed = 3
+        self.speed = 4
         self.xRad = 25
         self.yRad = 50
         
@@ -321,20 +323,20 @@ class player:
         '''
         ## Hitbox indicator
         if self.connected:
-            pygame.draw.rect(map1, blue, (self.x - self.xRad, self.y - self.yRad, \
+            pygame.draw.rect(currentMap, blue, (self.x - self.xRad, self.y - self.yRad, \
                                           self.xRad*2, self.yRad*2))  
         else:
-            pygame.draw.rect(map1, green, (self.x - self.xRad, self.y - self.yRad, \
+            pygame.draw.rect(currentMap, green, (self.x - self.xRad, self.y - self.yRad, \
                                           self.xRad*2, self.yRad*2))
         ## For now I'm just using the basic idle sprites
         if self.facing == NORTH:
-            map1.blit(idles[0], (self.x - self.xRad, self.y - self.yRad - 25))
+            currentMap.blit(idles[0], (self.x - self.xRad, self.y - self.yRad - 25))
         elif self.facing == EAST:
-            map1.blit(idles[2], (self.x - self.xRad, self.y - self.yRad - 25))
+            currentMap.blit(idles[2], (self.x - self.xRad, self.y - self.yRad - 25))
         elif self.facing == SOUTH:
-            map1.blit(idles[4], (self.x - self.xRad, self.y - self.yRad - 25))
+            currentMap.blit(idles[4], (self.x - self.xRad, self.y - self.yRad - 25))
         elif self.facing == WEST:
-            map1.blit(idles[6], (self.x - self.xRad, self.y - self.yRad - 25))
+            currentMap.blit(idles[6], (self.x - self.xRad, self.y - self.yRad - 25))
         else:
             print('Error: player is not facing a valid direction.')
             running = False
@@ -491,6 +493,7 @@ walls = [wall(0, 0, maplength, 2),
 
 activeParticles = [] ## Array of particle effects
 
+debug = True
 gameClock = pygame.time.Clock()
 running = True
 while running:
@@ -498,7 +501,7 @@ while running:
     pygame.time.delay(10) ## apparently this helps with inputs
     
     pygame.draw.rect(win, black, (0, 0, winlength, winheight))
-    pygame.draw.rect(map1, white, (0, 0, maplength, mapheight)) # draws the background
+    pygame.draw.rect(currentMap, white, (0, 0, maplength, mapheight)) # draws the background
     ## This background is the main source of lag
     
     for event in pygame.event.get():
@@ -546,14 +549,16 @@ while running:
     
     drawParticles()  
     
-    win.blit(map1, (camXpos, camYpos))
+    win.blit(currentMap, (camXpos, camYpos))
     
     ## Camera follow rect
-    pygame.draw.rect(win, red, camFollowRect, 5)
+    if debug:
+        pygame.draw.rect(win, red, camFollowRect, 5)
 
     ## FPS display
-    fpsText = font1.render(str(round(gameClock.get_fps())) + " FPS", False, blue)
-    win.blit(fpsText, (winlength - fpsText.get_size()[0], 0))
+    if debug:
+        fpsText = font1.render(str(round(gameClock.get_fps())) + " FPS", False, blue)
+        win.blit(fpsText, (winlength - fpsText.get_size()[0], 0))
     
     pygame.display.update() # put this at the end of your main loop
 
