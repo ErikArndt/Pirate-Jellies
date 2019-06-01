@@ -33,6 +33,7 @@ PAUSED = 2
 ## Player states
 FREE = 0 # walking or idle
 PUNCH = 1 # punching
+HURT = 2 # just been damaged
 
 ## Sounds - these are just placeholders
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
@@ -69,8 +70,6 @@ camXpos = -100 # these should always be negative
 camYpos = -100
 camFollowRect = (200, 200, winlength - 400, winheight - 400)
 
-activeParticles = [] ## Array of particle effects
-
 class wall:
     def __init__(self, x, y, width, height):
         self.x = x
@@ -97,24 +96,25 @@ class particle:
         return
 
 class punchParticle(particle):
-    ## Subclass of particle
+    ## Subclass of particle. It also contains functions for damaging enemies.
     def __init__(self, hero):
         self.duration = 10
         self.radius = 15
         self.colour = red
         self.owner = hero
+        self.damage = 1
         
         if hero.facing == NORTH:
             self.x = hero.x - self.radius
-            self.y = hero.y - hero.radius - 2*self.radius
+            self.y = hero.y - hero.yRad - 2*self.radius
         elif hero.facing == EAST:
-            self.x = hero.x + hero.radius
+            self.x = hero.x + hero.xRad
             self.y = hero.y - self.radius
         elif hero.facing == SOUTH:
             self.x = hero.x - self.radius
-            self.y = hero.y + hero.radius
+            self.y = hero.y + hero.yRad
         else: # West
-            self.x = hero.x - hero.radius - 2*self.radius
+            self.x = hero.x - hero.xRad - 2*self.radius
             self.y = hero.y - self.radius
         
         hero.state = PUNCH
@@ -124,30 +124,61 @@ class punchParticle(particle):
     
     def stop(self):
         self.owner.state = FREE
+    
+    def checkDamage(enemies):
+        ## TODO
+        return
 
 class enemy:
-    ## Will probably have to rework this once we get multiple enemy types
+    ## superclass for all enemy types
+    def __init__(self, startingX, startingY):
+        self.x = startingX
+        self.y = startingY
+        self.health = 1 # default value, different for specific enemies
+    
+    def draw(self):
+        ## placeholder
+        return
+
+    def hurt(self):
+        ## placeholder
+        return
+
+class jelly(enemy):
     def __init__(self, startingX, startingY):
         '''
         Enemies must be initialized with starting x and y coordinates.
         '''
         self.x = startingX
         self.y = startingY
-        self.radius = 20
+        self.xRad = 20
+        self.yRad = 20
+        
         self.speedCap = 5
         self.accel = 0.1
         self.xSpeed = 0
         self.ySpeed = 0
         self.xAccel = 0
         self.yAccel = 0
+        
+        self.state = FREE
+        self.damage = 1
+        self.health = 3
+        self.animTimers = {
+            'hurt': 0,
+        }
     
     def draw(self):
-        pygame.draw.circle(map1, red, (self.x, self.y), self.radius)
+        pygame.draw.rect(map1, yellow, (self.x - self.xRad, self.y - self.yRad, \
+                                        self.xRad*2, self.yRad*2))
+        ## Do something different if damaged
     
     def moveToward(self, hero):
         '''
         moves the enemy toward the given player (i.e. captain). Yes, this is
         actually physics.
+        Note: This does not check the enemy's state to see if it is allowed to
+        move or not.
         '''
         angle = functions.angleTo(self.x, self.y, hero.x, hero.y)
         self.xAccel = self.accel * math.cos(math.radians(angle))
@@ -166,35 +197,43 @@ class enemy:
         if self.xSpeed > 0:
             for i in range(len(walls)):
                 if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x, walls[i].y+walls[i].height),\
-                                  (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 1, self.xSpeed):
-                    self.x = walls[i].x - self.radius
+                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 1, self.xSpeed):
+                    self.x = walls[i].x - self.xRad
                     self.xSpeed = 0
                     break
         elif self.xSpeed < 0:
             for i in range(len(walls)):
                 if functions.checkCollision((walls[i].x+walls[i].width, walls[i].y), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
-                                  (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 3, -self.xSpeed):
-                    self.x = walls[i].x + walls[i].width + self.radius
+                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 3, -self.xSpeed):
+                    self.x = walls[i].x + walls[i].width + self.xRad
                     self.xSpeed = 0
                     break
         self.y += self.ySpeed
         if self.ySpeed < 0:
             for i in range(len(walls)):
                 if functions.checkCollision((walls[i].x, walls[i].y+walls[i].height), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
-                                  (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 0, -self.ySpeed):
-                    self.y = walls[i].y + walls[i].height + self.radius
+                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 0, -self.ySpeed):
+                    self.y = walls[i].y + walls[i].height + self.yRad
                     self.ySpeed = 0
                     break
         elif self.ySpeed > 0:
             for i in range(len(walls)):
                 if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x+walls[i].width, walls[i].y),\
-                                  (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 2, self.ySpeed):
-                    self.y = walls[i].y - self.radius
+                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 2, self.ySpeed):
+                    self.y = walls[i].y - self.yRad
                     self.ySpeed = 0
                     break
             
         self.x = round(self.x)
         self.y = round(self.y)
+    
+    def hurt(self, damage):
+        '''
+        Call when enemy is damaged. Parameter is the amount of damage the enemy
+        took.
+        '''
+        ## TODO: write this
+        return
 
 class player:
     def __init__(self, startingX, startingY):
@@ -205,32 +244,34 @@ class player:
         self.y = startingY
         self.facing = NORTH
         self.speed = 3
-        self.radius = 25
+        self.xRad = 25
+        self.yRad = 50
+        
+        self.health = 4
         self.state = FREE
+        self.animTimers = {
+            'idle': 0 # 0 means animation is not playing, positive means it's playing
+        }
     
     def draw(self):
         '''
         Draws the player character
         '''
-        pygame.draw.rect(map1, green, (self.x - self.radius, self.y - self.radius, \
-                                      self.radius*2, self.radius*2))
-        pygame.draw.rect(map1, green, (self.x - self.radius, self.y - self.radius - 50, \
-                                      self.radius*2, self.radius*2))
-        ## black line to indicate facing
+        ## Green hitbox indicator
+        pygame.draw.rect(map1, green, (self.x - self.xRad, self.y - self.yRad, \
+                                      self.xRad*2, self.yRad*2))
+        ## For now I'm just using the basic idle sprites
         if self.facing == NORTH:
-            pygame.draw.line(map1, black, (self.x, self.y), (self.x, self.y - self.radius), 2)
+            map1.blit(idles[0], (self.x - self.xRad, self.y - self.yRad - 25))
         elif self.facing == EAST:
-            pygame.draw.line(map1, black, (self.x, self.y), (self.x + self.radius, self.y), 2)
+            map1.blit(idles[2], (self.x - self.xRad, self.y - self.yRad - 25))
         elif self.facing == SOUTH:
-            pygame.draw.line(map1, black, (self.x, self.y), (self.x, self.y + self.radius), 2)
+            map1.blit(idles[4], (self.x - self.xRad, self.y - self.yRad - 25))
         elif self.facing == WEST:
-            pygame.draw.line(map1, black, (self.x, self.y), (self.x - self.radius, self.y), 2)
+            map1.blit(idles[6], (self.x - self.xRad, self.y - self.yRad - 25))
         else:
             print('Error: player is not facing a valid direction.')
             running = False
-        
-        ## Just putting this here to test dimensions
-        map1.blit(idles[0], (self.x - 25, self.y - 100))
     
     def moveNorth(self):
         ## Ensures the player can actually move
@@ -241,15 +282,15 @@ class player:
         ## Collision stuffs
         for i in range(len(walls)):
             if functions.checkCollision((walls[i].x, walls[i].y+walls[i].height), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
-                              (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 0, self.speed):
-                self.y = walls[i].y + walls[i].height + self.radius
+                              (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 0, self.speed):
+                self.y = walls[i].y + walls[i].height + self.yRad
                 break
         else: # Camera movement only happens if there are no wall collisions
         
             ## Might put camera stuff in a class/module/something eventually, 
             ## but for now it's global
             global camYpos        
-            if (self.y - self.radius + camYpos <= camFollowRect[1] \
+            if (self.y - self.yRad + camYpos <= camFollowRect[1] \
                 and camYpos < 0):
                 camYpos += self.speed
 
@@ -259,12 +300,12 @@ class player:
         self.x += self.speed
         for i in range(len(walls)):
             if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x, walls[i].y+walls[i].height),\
-                              (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 1, self.speed):
-                self.x = walls[i].x - self.radius
+                              (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 1, self.speed):
+                self.x = walls[i].x - self.xRad
                 break
         else:
             global camXpos
-            if (self.x + self.radius + camXpos >= camFollowRect[0] + camFollowRect[2] \
+            if (self.x + self.xRad + camXpos >= camFollowRect[0] + camFollowRect[2] \
                 and camXpos > -maplength + winlength):
                 camXpos -= self.speed
     
@@ -274,12 +315,12 @@ class player:
         self.y += self.speed
         for i in range(len(walls)):
             if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x+walls[i].width, walls[i].y),\
-                              (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 2, self.speed):
-                self.y = walls[i].y - self.radius
+                              (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 2, self.speed):
+                self.y = walls[i].y - self.yRad
                 break
         else:
             global camYpos
-            if (self.y + self.radius + camYpos >= camFollowRect[1] + camFollowRect[3] \
+            if (self.y + self.yRad + camYpos >= camFollowRect[1] + camFollowRect[3] \
                 and camYpos > -mapheight + winheight):
                 camYpos -= self.speed
     
@@ -289,12 +330,12 @@ class player:
         self.x -= self.speed
         for i in range(len(walls)):
             if functions.checkCollision((walls[i].x+walls[i].width, walls[i].y), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
-                              (self.x-self.radius, self.y-self.radius, self.radius*2, self.radius*2), 3, self.speed):
-                self.x = walls[i].x + walls[i].width + self.radius
+                              (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 3, self.speed):
+                self.x = walls[i].x + walls[i].width + self.xRad
                 break
         else:
             global camXpos
-            if (self.x - self.radius + camXpos <= camFollowRect[0] \
+            if (self.x - self.xRad + camXpos <= camFollowRect[0] \
                 and camXpos < 0):
                 camXpos += self.speed
         
@@ -342,14 +383,20 @@ def drawParticles():
         i += 1
 
 ## Main loop
-captain = player(500, 400)
-jelly = enemy(200, 200)
+captain = player(600, 600)
+
+enemies = []
+jelly1 = jelly(200, 200)
+## TODO: Change this so it adds jelly1 to the list
+
 walls = [wall(300, 200, 300, 200),
          wall(0, 0, 1000, 2),
          wall(0, 0, 2, 1000),
          wall(1000, 0, 2, 1000),
          wall(0, 1000, 1000, 2),
          ]
+
+activeParticles = [] ## Array of particle effects
 
 running = True
 while running:
@@ -386,17 +433,18 @@ while running:
     ## Don't use elifs, or else diagonal mvmt won't be possible
 
     pygame.draw.rect(map1, blue, (200, 250, 100, 150)) # random rect on the map
-        
+    
+    for i in range(len(walls)):
+        walls[i].draw()    
+    
     ## It looks a bit better if the player can't move or turn while punching
     if captain.state == FREE:
         captain.checkFacing()
     captain.draw()
     
-    jelly.moveToward(captain)
-    jelly.draw()
-
-    for i in range(len(walls)):
-        walls[i].draw()
+    ## TODO: Iterate through enemies list
+    jelly1.moveToward(captain)
+    jelly1.draw()
     
     drawParticles()
     
