@@ -38,7 +38,7 @@ DIE = 3 # playing the death animation
 
 ## Sounds - these are just placeholders
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
-kaboom = pygame.mixer.Sound('kaboom.wav')
+kaboom = pygame.mixer.Sound('kaboorn.wav')
 
 ## Fonts - not in use, but probably will be eventually
 font1 = pygame.font.SysFont('timesnewroman', 24)
