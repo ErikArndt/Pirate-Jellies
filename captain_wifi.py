@@ -30,6 +30,10 @@ PLAYING = 0
 MAINMENU = 1
 PAUSED = 2
 
+## Player states
+FREE = 0 # walking or idle
+PUNCH = 1 # punching
+
 ## Sounds - these are just placeholders
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
 kaboom = pygame.mixer.Sound('kaboom.wav')
@@ -45,9 +49,55 @@ pygame.display.set_caption('Captain WiFi') # sets the window caption
 
 map1 = pygame.Surface((maplength, mapheight))
 
-camTracking = True # must be set before class definitions
 camXpos = -100 # these should always be negative
 camYpos = -100
+camFollowRect = (200, 200, winlength - 400, winheight - 400)
+
+activeParticles = [] ## Array of particle effects
+
+class particle:
+    ## This is a superclass. Don't actually use it. Use it's subclasses.
+    def __init__(self, x, y, duration):
+        self.x = x
+        self.y = y
+        self.duration = duration
+    
+    def draw(self):
+        ## placeholder
+        return
+    
+    def stop(self):
+        ## some particles might need to do special things before being removed
+        return
+
+class punchParticle(particle):
+    ## Subclass of particle
+    def __init__(self, hero):
+        self.duration = 10
+        self.radius = 15
+        self.colour = red
+        self.owner = hero
+        
+        if hero.facing == NORTH:
+            self.x = hero.x - self.radius
+            self.y = hero.y - hero.radius - 2*self.radius
+        elif hero.facing == EAST:
+            self.x = hero.x + hero.radius
+            self.y = hero.y - self.radius
+        elif hero.facing == SOUTH:
+            self.x = hero.x - self.radius
+            self.y = hero.y + hero.radius
+        else: # West
+            self.x = hero.x - hero.radius - 2*self.radius
+            self.y = hero.y - self.radius
+        
+        hero.state = PUNCH
+    
+    def draw(self):
+        pygame.draw.rect(map1, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
+    
+    def stop(self):
+        self.owner.state = FREE
 
 class enemy:
     ## Will probably have to rework this once we get multiple enemy types
@@ -101,6 +151,7 @@ class player:
         self.facing = NORTH
         self.speed = 3
         self.radius = 25
+        self.state = FREE
     
     def draw(self):
         '''
@@ -122,29 +173,42 @@ class player:
             running = False
     
     def moveNorth(self):
+        ## Ensures the player can actually move
+        if not(self.state == FREE):
+            return
         self.y -= self.speed
-        if camTracking:
-            ## Might put camera stuff in a class/module/something eventually, 
-            ## but for now it's global
-            global camYpos
+        ## Might put camera stuff in a class/module/something eventually, 
+        ## but for now it's global
+        global camYpos        
+        if (self.y - self.radius + camYpos <= camFollowRect[1] \
+            and camYpos < 0):
             camYpos += self.speed
     
     def moveEast(self):
+        if not(self.state == FREE):
+            return        
         self.x += self.speed
-        if camTracking:
-            global camXpos
+        global camXpos
+        if (self.x + self.radius + camXpos >= camFollowRect[0] + camFollowRect[2] \
+            and camXpos > -maplength + winlength):
             camXpos -= self.speed
     
     def moveSouth(self):
+        if not(self.state == FREE):
+            return        
         self.y += self.speed
-        if camTracking:
-            global camYpos
+        global camYpos
+        if (self.y + self.radius + camYpos >= camFollowRect[1] + camFollowRect[3] \
+            and camYpos > -mapheight + winheight):
             camYpos -= self.speed
     
     def moveWest(self):
+        if not(self.state == FREE):
+            return        
         self.x -= self.speed
-        if camTracking:
-            global camXpos
+        global camXpos
+        if (self.x - self.radius + camXpos <= camFollowRect[0] \
+            and camXpos < 0):
             camXpos += self.speed
         
     def checkFacing(self):
@@ -168,6 +232,27 @@ class player:
             self.facing = EAST
         else:
             self.facing = WEST
+    
+    def punch(self):
+        activeParticles.append(punchParticle(self))
+            
+def drawParticles():
+    '''
+    iterates through activeParticles, draws each one, and decreases their
+    durations.
+    '''
+    ## removes dead particles
+    i = 0
+    while i < len(activeParticles):
+        p = activeParticles[i]
+        if p.duration <= 0:
+            p.stop()
+            activeParticles.pop(i)
+            i -= 1
+        else:
+            p.duration -= 1
+            p.draw()
+        i += 1
 
 ## Main loop
 captain = player(500, 400)
@@ -191,7 +276,9 @@ while running:
                 print("Space doesn't do anything ya dingus")
                 
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1): # left mouse button
-            boop.play()
+            if captain.state == FREE:
+                boop.play()
+                captain.punch()
         
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
             kaboom.play()
@@ -207,11 +294,15 @@ while running:
         captain.moveWest()
     ## Don't use elifs, or else diagonal mvmt won't be possible
     
-    captain.checkFacing()
+    ## It looks a bit better if the player can't move or turn while punching
+    if captain.state == FREE:
+        captain.checkFacing()
     captain.draw()
     
     jelly.moveToward(captain)
     jelly.draw()
+    
+    drawParticles()
     
     # just a sec, I'm gonna try drawing a semitransparent circle
     s = pygame.Surface((200, 200), pygame.SRCALPHA)
@@ -221,7 +312,7 @@ while running:
     win.blit(map1, (camXpos, camYpos))
     
     ## Camera follow rect
-    pygame.draw.rect(win, red, (200, 200, winlength - 400, winheight - 400), 5)
+    pygame.draw.rect(win, red, camFollowRect, 5)
     
     pygame.display.update() # put this at the end of your main loop
 
