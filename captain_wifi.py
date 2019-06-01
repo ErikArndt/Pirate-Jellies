@@ -34,6 +34,7 @@ PAUSED = 2
 FREE = 0 # walking or idle
 PUNCH = 1 # punching
 HURT = 2 # just been damaged
+DIE = 3 # playing the death animation
 
 ## Sounds - these are just placeholders
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
@@ -118,6 +119,7 @@ class punchParticle(particle):
             self.y = hero.y - self.radius
         
         hero.state = PUNCH
+        self.checkDamage(enemies)
     
     def draw(self):
         pygame.draw.rect(map1, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
@@ -125,8 +127,17 @@ class punchParticle(particle):
     def stop(self):
         self.owner.state = FREE
     
-    def checkDamage(enemies):
-        ## TODO
+    def checkDamage(self, enemies):
+        '''
+        Checks whether the particle intersects with any enemies. Runs the hurt
+        method on any enemies that were hit.
+        '''
+        for e in enemies:
+            if functions.rectIntersect((self.x - self.radius, self.y - self.radius, \
+                                        2*self.radius, 2*self.radius), \
+                                       (e.x - e.xRad, e.y - e.yRad, 2*e.xRad, 2*e.yRad)):
+                if e.state == FREE: ## Might need to add more states
+                    e.hurt(self.damage)
         return
 
 class enemy:
@@ -134,6 +145,8 @@ class enemy:
     def __init__(self, startingX, startingY):
         self.x = startingX
         self.y = startingY
+        self.xRad = 0
+        self.yRad = 0
         self.health = 1 # default value, different for specific enemies
     
     def draw(self):
@@ -141,6 +154,10 @@ class enemy:
         return
 
     def hurt(self):
+        ## placeholder
+        return
+    
+    def die(self):
         ## placeholder
         return
 
@@ -166,12 +183,35 @@ class jelly(enemy):
         self.health = 3
         self.animTimers = {
             'hurt': 0,
+            'die': 100
         }
     
     def draw(self):
-        pygame.draw.rect(map1, yellow, (self.x - self.xRad, self.y - self.yRad, \
-                                        self.xRad*2, self.yRad*2))
-        ## Do something different if damaged
+        if self.state == FREE:
+            pygame.draw.rect(map1, yellow, (self.x - self.xRad, self.y - self.yRad, \
+                                            self.xRad*2, self.yRad*2))
+        elif self.state == HURT:
+            pygame.draw.rect(map1, (255, 255, 5 + 25*self.animTimers['hurt']), \
+                             (self.x - self.xRad, self.y - self.yRad, self.xRad*2, self.yRad*2))
+            ## Update the animations and/or state
+            if self.animTimers['hurt'] <= 0:
+                self.state = FREE
+            else:
+                self.animTimers['hurt'] -= 1
+        
+        elif self.state == DIE:
+            pygame.draw.rect(map1, yellow, (self.x - self.xRad, self.y - self.yRad, \
+                                            self.xRad*2, self.yRad*2))
+            pygame.draw.line(map1, red, (self.x - self.xRad, self.y - self.yRad), \
+                             (self.x + self.xRad, self.y + self.yRad), 2)
+            pygame.draw.line(map1, red, (self.x - self.xRad, self.y + self.yRad), \
+                             (self.x + self.xRad, self.y - self.yRad), 2)
+            ## Update the animations and/or state
+            if self.animTimers['die'] <= 0:
+                ## remove the enemy from enemies ... somehow
+                return
+            else:
+                self.animTimers['die'] -= 1
     
     def moveToward(self, hero):
         '''
@@ -232,8 +272,20 @@ class jelly(enemy):
         Call when enemy is damaged. Parameter is the amount of damage the enemy
         took.
         '''
-        ## TODO: write this
+        self.health -= damage
+        if self.health <= 0:
+            self.die()
+        else:
+            self.state = HURT
+            self.animTimers['hurt'] = 10
         return
+    
+    def die(self):
+        '''
+        Call when enemy health drops to 0 or lower. Plays death animation. 
+        Currently does not remove enemy from enemies.
+        '''
+        self.state = DIE
 
 class player:
     def __init__(self, startingX, startingY):
@@ -387,7 +439,7 @@ captain = player(1400, 1800)
 
 enemies = []
 jelly1 = jelly(1000, 1100)
-## TODO: Change this so it adds jelly1 to the list
+enemies.append(jelly1)
 
 walls = [wall(0, 0, maplength, 2),
          wall(0, 0, 2, mapheight),
@@ -443,14 +495,16 @@ while running:
     for i in range(len(walls)):
         walls[i].draw()    
     
+    for e in enemies:
+        if e.state == FREE:
+            if isinstance(e, jelly):
+                e.moveToward(captain)
+        e.draw()
+    
     ## It looks a bit better if the player can't move or turn while punching
     if captain.state == FREE:
         captain.checkFacing()
-    captain.draw()
-    
-    ## TODO: Iterate through enemies list
-    jelly1.moveToward(captain)
-    jelly1.draw()
+    captain.draw()    
     
     drawParticles()  
     
