@@ -17,8 +17,8 @@ yellow = pygame.Color('yellow')
 
 winheight = 600
 winlength = 800
-mapheight = 2000
-maplength = 2000
+mapheight = 1500
+maplength = 1500
 
 NORTH = 0
 EAST = 1
@@ -38,7 +38,7 @@ DIE = 3 # playing the death animation
 
 ## Sounds - these are just placeholders
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
-kaboom = pygame.mixer.Sound('kaboorn.wav')
+kaboom = pygame.mixer.Sound('kaboom.wav')
 
 ## Fonts - not in use, but probably will be eventually
 font1 = pygame.font.SysFont('timesnewroman', 24)
@@ -67,9 +67,18 @@ for i in range(len(idles)):
 
 map1 = pygame.Surface((maplength, mapheight))
 
-camXpos = -1000 # these should always be negative
-camYpos = -1400
+camXpos = -300 # these should always be negative
+camYpos = -900
 camFollowRect = (200, 200, winlength - 400, winheight - 400)
+
+class wifi:
+    def __init__(self, x, y, radius):
+        self.x = x
+        self.y = y
+        self.radius = radius
+    def draw(self):
+        pygame.draw.ellipse(map1, blue, (self.x-self.radius, self.y-self.radius, \
+                                         self.radius*2, self.radius*2), 5)
 
 class wall:
     def __init__(self, x, y, width, height):
@@ -304,14 +313,19 @@ class player:
         self.animTimers = {
             'idle': 0 # 0 means animation is not playing, positive means it's playing
         }
+        self.connected = False
     
     def draw(self):
         '''
         Draws the player character
         '''
-        ## Green hitbox indicator
-        pygame.draw.rect(map1, green, (self.x - self.xRad, self.y - self.yRad, \
-                                      self.xRad*2, self.yRad*2))
+        ## Hitbox indicator
+        if self.connected:
+            pygame.draw.rect(map1, blue, (self.x - self.xRad, self.y - self.yRad, \
+                                          self.xRad*2, self.yRad*2))  
+        else:
+            pygame.draw.rect(map1, green, (self.x - self.xRad, self.y - self.yRad, \
+                                          self.xRad*2, self.yRad*2))
         ## For now I'm just using the basic idle sprites
         if self.facing == NORTH:
             map1.blit(idles[0], (self.x - self.xRad, self.y - self.yRad - 25))
@@ -345,6 +359,12 @@ class player:
             if (self.y - self.yRad + camYpos <= camFollowRect[1] \
                 and camYpos < 0):
                 camYpos += self.speed
+            
+            # Checks if in wifi zone
+            if math.sqrt((self.x-signal.x)**2 + (self.y-signal.y)**2) <= signal.radius:
+                self.connected = True
+            else:
+                self.connected = False            
 
     def moveEast(self):
         if not(self.state == FREE):
@@ -360,6 +380,11 @@ class player:
             if (self.x + self.xRad + camXpos >= camFollowRect[0] + camFollowRect[2] \
                 and camXpos > -maplength + winlength):
                 camXpos -= self.speed
+            if math.sqrt((self.x-signal.x)**2 + (self.y-signal.y)**2) <= signal.radius:
+                self.connected = True
+            else:
+                self.connected = False
+                
     
     def moveSouth(self):
         if not(self.state == FREE):
@@ -375,6 +400,11 @@ class player:
             if (self.y + self.yRad + camYpos >= camFollowRect[1] + camFollowRect[3] \
                 and camYpos > -mapheight + winheight):
                 camYpos -= self.speed
+            if math.sqrt((self.x-signal.x)**2 + (self.y-signal.y)**2) <= signal.radius:
+                self.connected = True
+            else:
+                self.connected = False
+                
     
     def moveWest(self):
         if not(self.state == FREE):
@@ -390,6 +420,11 @@ class player:
             if (self.x - self.xRad + camXpos <= camFollowRect[0] \
                 and camXpos < 0):
                 camXpos += self.speed
+            if math.sqrt((self.x-signal.x)**2 + (self.y-signal.y)**2) <= signal.radius:
+                self.connected = True
+            else:
+                self.connected = False
+                
         
     def checkFacing(self):
         '''
@@ -435,21 +470,24 @@ def drawParticles():
         i += 1
 
 ## Main loop
-captain = player(1400, 1800)
+captain = player(700, 1350)
 
 enemies = []
 jelly1 = jelly(1000, 1100)
 enemies.append(jelly1)
 
+signal = wifi(550, 400, 200)
+
 walls = [wall(0, 0, maplength, 2),
          wall(0, 0, 2, mapheight),
          wall(maplength, 0, 2, mapheight),
          wall(0, mapheight, maplength, 2),
-         wall(0, 1600, 1200, 400),
-         wall(1600, 1000, 400, 1000),
-         wall(0, 0, 800, 2000),
-         wall(1200, 1000, 800, 200),
-         wall(0, 0, 2000, 200)]
+         wall(0, 0, 250, 1500),
+         wall(250, 1200, 300, 300),
+         wall(550, 750, 300, 150),
+         wall(850, 300, 650, 1200),
+         wall(850, 0, 650, 100)
+         ]
 
 activeParticles = [] ## Array of particle effects
 
@@ -489,8 +527,6 @@ while running:
     if keys[pygame.K_a]:
         captain.moveWest()
     ## Don't use elifs, or else diagonal mvmt won't be possible
-
-    pygame.draw.rect(map1, blue, (200, 250, 100, 150)) # random rect on the map
     
     for i in range(len(walls)):
         walls[i].draw()    
@@ -505,6 +541,8 @@ while running:
     if captain.state == FREE:
         captain.checkFacing()
     captain.draw()    
+    
+    signal.draw()
     
     drawParticles()  
     
