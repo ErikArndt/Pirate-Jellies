@@ -55,6 +55,15 @@ camFollowRect = (200, 200, winlength - 400, winheight - 400)
 
 activeParticles = [] ## Array of particle effects
 
+class wall:
+    def __init__(self, x, y, width, height):
+        self.posX = x
+        self.posY = y
+        self.width = width
+        self.height = height
+
+    def draw(self):
+
 class particle:
     ## This is a superclass. Don't actually use it. Use it's subclasses.
     def __init__(self, x, y, duration):
