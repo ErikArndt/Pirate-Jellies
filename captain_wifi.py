@@ -47,6 +47,22 @@ win = pygame.display.set_mode((winlength, winheight)) # creates the window
 
 pygame.display.set_caption('Captain WiFi') # sets the window caption
 
+## ******************* IMAGES *************
+## I need to put them here after defining win
+
+idles = [pygame.image.load('images/idleU1.png').convert_alpha(), \
+         pygame.image.load('images/idleU2.png').convert_alpha(),
+         pygame.image.load('images/idleR1.png').convert_alpha(),
+         pygame.image.load('images/idleR2.png').convert_alpha(),
+         pygame.image.load('images/idleD1.png').convert_alpha(),
+         pygame.image.load('images/idleD2.png').convert_alpha(),
+         pygame.image.load('images/idleL1.png').convert_alpha(),
+         pygame.image.load('images/idleL2.png').convert_alpha()]
+for i in range(len(idles)):
+    idles[i] = pygame.transform.scale(idles[i], (50, 125))
+
+## ****************************************
+
 map1 = pygame.Surface((maplength, mapheight))
 
 camXpos = -100 # these should always be negative
@@ -169,6 +185,8 @@ class player:
         '''
         pygame.draw.rect(map1, green, (self.x - self.radius, self.y - self.radius, \
                                       self.radius*2, self.radius*2))
+        pygame.draw.rect(map1, green, (self.x - self.radius, self.y - self.radius - 50, \
+                                      self.radius*2, self.radius*2))
         ## black line to indicate facing
         if self.facing == NORTH:
             pygame.draw.line(map1, black, (self.x, self.y), (self.x, self.y - self.radius), 2)
@@ -181,6 +199,9 @@ class player:
         else:
             print('Error: player is not facing a valid direction.')
             running = False
+        
+        ## Just putting this here to test dimensions
+        map1.blit(idles[0], (self.x - 25, self.y - 100))
     
     def moveNorth(self):
         ## Ensures the player can actually move
@@ -296,8 +317,6 @@ while running:
     pygame.draw.rect(win, black, (0, 0, winlength, winheight))
     pygame.draw.rect(map1, white, (0, 0, maplength, mapheight)) # draws the background
     
-    pygame.draw.rect(map1, blue, (200, 250, 100, 150)) # random rect on the map
-    
     for event in pygame.event.get():
         if event.type == pygame.QUIT: # what happens when X is pressed
             running = False
@@ -324,7 +343,9 @@ while running:
     if keys[pygame.K_a]:
         captain.moveWest()
     ## Don't use elifs, or else diagonal mvmt won't be possible
-    
+
+    pygame.draw.rect(map1, blue, (200, 250, 100, 150)) # random rect on the map
+        
     ## It looks a bit better if the player can't move or turn while punching
     if captain.state == FREE:
         captain.checkFacing()
