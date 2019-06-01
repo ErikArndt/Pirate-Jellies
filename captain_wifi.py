@@ -3,6 +3,7 @@ import pygame
 import functions
 import maps
 import enemies
+import collision
 
 pygame.mixer.pre_init(22050, -16, 2, 2048)
 pygame.mixer.init()
@@ -38,7 +39,7 @@ DIE = 3 # playing the death animation
 
 ## Sounds - these are just placeholders
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
-kaboom = pygame.mixer.Sound('kaboorn.wav')
+kaboom = pygame.mixer.Sound('kaboom.wav')
 
 ## Fonts - not in use, but probably will be eventually
 font1 = pygame.font.SysFont('timesnewroman', 24)
@@ -64,16 +65,17 @@ for i in range(len(idles)):
     idles[i] = pygame.transform.scale(idles[i], (50, 125))
 
 ## ****************************************
-    
-maplength = maps.mapSizes[1][0]
-mapheight = maps.mapSizes[1][1]
+
+level = 1 # This will be mutated
+maplength = maps.mapSizes[level][0]
+mapheight = maps.mapSizes[level][1]
 currentMap = pygame.Surface((maplength, mapheight))
 
 camXpos = -300 # these should always be negative
 camYpos = -900
 camFollowRect = (200, 200, winlength - 400, winheight - 400)
 
-class wifi:
+class Wifi:
     def __init__(self, x, y, radius):
         self.x = x
         self.y = y
@@ -82,17 +84,7 @@ class wifi:
         pygame.draw.ellipse(currentMap, blue, (self.x-self.radius, self.y-self.radius, \
                                          self.radius*2, self.radius*2), 5)
 
-class wall:
-    def __init__(self, x, y, width, height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-
-    def draw(self):
-        pygame.draw.rect(currentMap, black, (self.x, self.y, self.width, self.height), 0)
-
-class particle:
+class Particle:
     ## This is a superclass. Don't actually use it. Use it's subclasses.
     def __init__(self, x, y, duration):
         self.x = x
@@ -107,7 +99,7 @@ class particle:
         ## some particles might need to do special things before being removed
         return
 
-class punchParticle(particle):
+class PunchParticle(Particle):
     ## Subclass of particle. It also contains functions for damaging enemies.
     def __init__(self, hero):
         self.duration = 10
@@ -130,7 +122,7 @@ class punchParticle(particle):
             self.y = hero.y - self.radius
         
         hero.state = PUNCH
-        self.checkDamage(enemies)
+        self.checkDamage(enemyList)
     
     def draw(self):
         pygame.draw.rect(currentMap, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
@@ -138,165 +130,18 @@ class punchParticle(particle):
     def stop(self):
         self.owner.state = FREE
     
-    def checkDamage(self, enemies):
+    def checkDamage(self, enemyList):
         '''
         Checks whether the particle intersects with any enemies. Runs the hurt
         method on any enemies that were hit.
         '''
-        for e in enemies:
-            if functions.rectIntersect((self.x - self.radius, self.y - self.radius, \
+        for e in enemyList:
+            if collision.rects((self.x - self.radius, self.y - self.radius, \
                                         2*self.radius, 2*self.radius), \
                                        (e.x - e.xRad, e.y - e.yRad, 2*e.xRad, 2*e.yRad)):
                 if e.state == FREE: ## Might need to add more states
                     e.hurt(self.damage)
         return
-
-class enemy:
-    ## superclass for all enemy types
-    def __init__(self, startingX, startingY):
-        self.x = startingX
-        self.y = startingY
-        self.xRad = 0
-        self.yRad = 0
-        self.health = 1 # default value, different for specific enemies
-    
-    def draw(self):
-        ## placeholder
-        return
-
-    def hurt(self):
-        ## placeholder
-        return
-    
-    def die(self):
-        ## placeholder
-        return
-
-class jelly(enemy):
-    def __init__(self, startingX, startingY):
-        '''
-        Enemies must be initialized with starting x and y coordinates.
-        '''
-        self.x = startingX
-        self.y = startingY
-        self.xRad = 20
-        self.yRad = 20
-        
-        self.speedCap = 5
-        self.accel = 0.1
-        self.xSpeed = 0
-        self.ySpeed = 0
-        self.xAccel = 0
-        self.yAccel = 0
-        
-        self.state = FREE
-        self.damage = 1
-        self.health = 3
-        self.animTimers = {
-            'hurt': 0,
-            'die': 100
-        }
-    
-    def draw(self):
-        if self.state == FREE:
-            pygame.draw.rect(currentMap, yellow, (self.x - self.xRad, self.y - self.yRad, \
-                                            self.xRad*2, self.yRad*2))
-        elif self.state == HURT:
-            pygame.draw.rect(currentMap, (255, 255, 5 + 25*self.animTimers['hurt']), \
-                             (self.x - self.xRad, self.y - self.yRad, self.xRad*2, self.yRad*2))
-            ## Update the animations and/or state
-            if self.animTimers['hurt'] <= 0:
-                self.state = FREE
-            else:
-                self.animTimers['hurt'] -= 1
-        
-        elif self.state == DIE:
-            pygame.draw.rect(currentMap, yellow, (self.x - self.xRad, self.y - self.yRad, \
-                                            self.xRad*2, self.yRad*2))
-            pygame.draw.line(currentMap, red, (self.x - self.xRad, self.y - self.yRad), \
-                             (self.x + self.xRad, self.y + self.yRad), 2)
-            pygame.draw.line(currentMap, red, (self.x - self.xRad, self.y + self.yRad), \
-                             (self.x + self.xRad, self.y - self.yRad), 2)
-            ## Update the animations and/or state
-            if self.animTimers['die'] <= 0:
-                ## remove the enemy from enemies ... somehow
-                return
-            else:
-                self.animTimers['die'] -= 1
-    
-    def moveToward(self, hero):
-        '''
-        moves the enemy toward the given player (i.e. captain). Yes, this is
-        actually physics.
-        Note: This does not check the enemy's state to see if it is allowed to
-        move or not.
-        '''
-        angle = functions.angleTo(self.x, self.y, hero.x, hero.y)
-        self.xAccel = self.accel * math.cos(math.radians(angle))
-        self.yAccel = self.accel * math.sin(math.radians(angle))
-        self.xSpeed += self.xAccel
-        self.ySpeed += self.yAccel
-        
-        ## cap the enemy's speed
-        curSpeed = math.sqrt(self.xSpeed * self.xSpeed + self.ySpeed * self.ySpeed)
-        if (curSpeed > self.speedCap):
-            scaleFactor = curSpeed / self.speedCap
-            self.xSpeed /= scaleFactor
-            self.ySpeed /= scaleFactor
-        
-        self.x += self.xSpeed
-        if self.xSpeed > 0:
-            for i in range(len(walls)):
-                if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x, walls[i].y+walls[i].height),\
-                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 1, self.xSpeed):
-                    self.x = walls[i].x - self.xRad
-                    self.xSpeed = 0
-                    break
-        elif self.xSpeed < 0:
-            for i in range(len(walls)):
-                if functions.checkCollision((walls[i].x+walls[i].width, walls[i].y), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
-                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 3, -self.xSpeed):
-                    self.x = walls[i].x + walls[i].width + self.xRad
-                    self.xSpeed = 0
-                    break
-        self.y += self.ySpeed
-        if self.ySpeed < 0:
-            for i in range(len(walls)):
-                if functions.checkCollision((walls[i].x, walls[i].y+walls[i].height), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
-                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 0, -self.ySpeed):
-                    self.y = walls[i].y + walls[i].height + self.yRad
-                    self.ySpeed = 0
-                    break
-        elif self.ySpeed > 0:
-            for i in range(len(walls)):
-                if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x+walls[i].width, walls[i].y),\
-                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 2, self.ySpeed):
-                    self.y = walls[i].y - self.yRad
-                    self.ySpeed = 0
-                    break
-            
-        self.x = round(self.x)
-        self.y = round(self.y)
-    
-    def hurt(self, damage):
-        '''
-        Call when enemy is damaged. Parameter is the amount of damage the enemy
-        took.
-        '''
-        self.health -= damage
-        if self.health <= 0:
-            self.die()
-        else:
-            self.state = HURT
-            self.animTimers['hurt'] = 10
-        return
-    
-    def die(self):
-        '''
-        Call when enemy health drops to 0 or lower. Plays death animation. 
-        Currently does not remove enemy from enemies.
-        '''
-        self.state = DIE
 
 class player:
     def __init__(self, startingX, startingY):
@@ -349,14 +194,13 @@ class player:
 
         ## Collision stuffs
         for i in range(len(walls)):
-            if functions.checkCollision((walls[i].x, walls[i].y+walls[i].height), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
-                              (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 0, self.speed):
+            if collision.lineRect((walls[i].x, walls[i].y+walls[i].height), \
+                                  (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
+                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), \
+                                  0, self.speed):
                 self.y = walls[i].y + walls[i].height + self.yRad
                 break
         else: # Camera movement only happens if there are no wall collisions
-        
-            ## Might put camera stuff in a class/module/something eventually, 
-            ## but for now it's global
             global camYpos        
             if (self.y - self.yRad + camYpos <= camFollowRect[1] \
                 and camYpos < 0):
@@ -373,8 +217,9 @@ class player:
             return        
         self.x += self.speed
         for i in range(len(walls)):
-            if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x, walls[i].y+walls[i].height),\
-                              (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 1, self.speed):
+            if collision.lineRect((walls[i].x, walls[i].y), (walls[i].x, walls[i].y+walls[i].height),\
+                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), \
+                                  1, self.speed):
                 self.x = walls[i].x - self.xRad
                 break
         else:
@@ -393,8 +238,9 @@ class player:
             return        
         self.y += self.speed
         for i in range(len(walls)):
-            if functions.checkCollision((walls[i].x, walls[i].y), (walls[i].x+walls[i].width, walls[i].y),\
-                              (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 2, self.speed):
+            if collision.lineRect((walls[i].x, walls[i].y), (walls[i].x+walls[i].width, walls[i].y),\
+                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), \
+                                  2, self.speed):
                 self.y = walls[i].y - self.yRad
                 break
         else:
@@ -413,8 +259,10 @@ class player:
             return        
         self.x -= self.speed
         for i in range(len(walls)):
-            if functions.checkCollision((walls[i].x+walls[i].width, walls[i].y), (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
-                              (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), 3, self.speed):
+            if collision.lineRect((walls[i].x+walls[i].width, walls[i].y), \
+                                  (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
+                                  (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), \
+                                  3, self.speed):
                 self.x = walls[i].x + walls[i].width + self.xRad
                 break
         else:
@@ -451,7 +299,7 @@ class player:
             self.facing = WEST
     
     def punch(self):
-        activeParticles.append(punchParticle(self))
+        activeParticles.append(PunchParticle(self))
             
 def drawParticles():
     '''
@@ -474,22 +322,14 @@ def drawParticles():
 ## Main loop
 captain = player(700, 1350)
 
-enemies = []
-jelly1 = jelly(1000, 1100)
-enemies.append(jelly1)
+enemyList = []
+jelly1 = enemies.Jelly(1000, 1100)
+enemyList.append(jelly1)
 
-signal = wifi(550, 400, 200)
+signal = Wifi(550, 400, 200)
 
-walls = [wall(0, 0, maplength, 2),
-         wall(0, 0, 2, mapheight),
-         wall(maplength, 0, 2, mapheight),
-         wall(0, mapheight, maplength, 2),
-         wall(0, 0, 250, 1500),
-         wall(250, 1200, 300, 300),
-         wall(550, 750, 300, 150),
-         wall(850, 300, 650, 1200),
-         wall(850, 0, 650, 100)
-         ]
+walls = maps.loadWalls(level)
+bg = maps.loadBG(level)
 
 activeParticles = [] ## Array of particle effects
 
@@ -500,8 +340,7 @@ while running:
     gameClock.tick()
     pygame.time.delay(10) ## apparently this helps with inputs
     
-    pygame.draw.rect(win, black, (0, 0, winlength, winheight))
-    pygame.draw.rect(currentMap, white, (0, 0, maplength, mapheight)) # draws the background
+    currentMap.blit(bg, (0, 0)) # draws the level
     ## This background is the main source of lag
     
     for event in pygame.event.get():
@@ -532,13 +371,13 @@ while running:
     ## Don't use elifs, or else diagonal mvmt won't be possible
     
     for i in range(len(walls)):
-        walls[i].draw()    
+        walls[i].draw(currentMap)    
     
-    for e in enemies:
+    for e in enemyList:
         if e.state == FREE:
-            if isinstance(e, jelly):
-                e.moveToward(captain)
-        e.draw()
+            if isinstance(e, enemies.Jelly):
+                e.moveToward(captain, walls)
+        e.draw(currentMap)
     
     ## It looks a bit better if the player can't move or turn while punching
     if captain.state == FREE:

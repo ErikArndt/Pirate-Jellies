@@ -116,66 +116,6 @@ def checkRectWithLine(lineS, lineE, rect, ray=False):
         if temp != (-1, -1):
             return(temp)
     return(-1, -1)
-
-def rectIntersect(rect1, rect2):
-    '''
-    Tells you whether two rectangles overlap at any point.
-    rect1 is the coordinates of the top left corner of the rectangle, as well 
-    as its width and height, (x, y, width, height).
-    The output is a boolean, True if the rectangles overlap.
-    '''
-    x1, y1, width1, height1 = rect1
-    x2, y2, width2, height2 = rect2
-    if ((x1 > x2 and x1 < x2+width2) or (x1+width1 > x2 and x1+width1 < x2+width2)) \
-       and ((y1 > y2 and y1 < y2+height2) or (y1+height1 > y2 and y1+height1 < y2+height2)):
-        output = True
-    else:
-        output = False
-    return output
-
-def checkCollision(edgeS, edgeE, rect, direction, speed):
-    '''
-    returns boolean, checks if rect (the player or some other object) is
-    colliding with the wall (edge)
-    direction is a number from 0-3, N E S W respectively
-    speed is the speed of the rectangle moving into the wall
-    speed used to determine which wall the rect is touching when near a corner
-    '''
-    rectX, rectY, rectWidth, rectHeight = rect
-    
-    if direction == 0:
-        if rectY >= edgeS[1] or rectY < edgeS[1]-speed*2:
-            output = False
-        elif edgeS[0] >= rectX+rectWidth or edgeE[0] <= rectX:
-            output = False
-        else:
-            output = True
-
-    if direction == 1:
-        if rectX+rectWidth <= edgeS[0] or rectX+rectWidth > edgeS[0]+speed*2:
-            output = False
-        elif edgeS[1] >= rectY+rectHeight or edgeE[1] <= rectY:
-            output = False
-        else:
-            output = True
-
-    if direction == 2:
-        if rectY+rectHeight <= edgeS[1] or rectY+rectHeight > edgeS[1]+speed*2:
-            output = False
-        elif edgeS[0] >= rectX+rectWidth or edgeE[0] <= rectX:
-            output = False
-        else:
-            output = True
-
-    if direction == 3:
-        if rectX >= edgeS[0] or rectX < edgeS[0]-speed*2:
-            output = False
-        elif edgeS[1] >= rectY+rectHeight or edgeE[1] <= rectY:
-            output = False
-        else:
-            output = True
-    return output
-    
         
 
 def angleTo(x1, y1, x2, y2):
