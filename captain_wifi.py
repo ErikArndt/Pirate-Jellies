@@ -143,6 +143,38 @@ class PunchParticle(Particle):
                     e.hurt(self.damage)
         return
 
+class BeamParticle(particle):
+    def __init__(self, mouseX, mouseY, hero, wifi):
+        self.x1 = hero.x
+        self.y1 = hero.y
+        self.x2 = mouseX
+        self.y2 = mouseY
+        self.duration = 20
+        self.powered = wifi
+        self.owner = hero
+        self.angle = functions.angleTo(self.x1, self.y1, self.x2, self.y2)
+        self.damage = 1
+        if self.powered:
+            self.damage = 2
+
+        hero.state = BEAM
+        self.checkDamage(enemyList)
+
+    def draw(self)
+        # do the image thing, self.angle is the angle given by angleTo
+        # 0 = east, 90 = south, etc.
+
+    def stop(self):
+        self.owner.state = FREE
+    
+    def checkDamage(self, enemies):
+        for e in enemyList:
+            if functions.checkRectWithLine((self.x1, self.y1), (self.x2, self.y2),\
+                                           (e.x - e.xRad, e.y - e.yRad, 2*e.xRad, 2*e.yRad)) != (-1, -1):
+                if e.state == FREE:
+                    e.hurt(self.damage)
+        return
+
 class player:
     def __init__(self, startingX, startingY):
         '''
