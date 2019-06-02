@@ -448,12 +448,16 @@ while running:
     gameClock.tick()
     pygame.time.delay(10) ## apparently this helps with inputs
     
+    ## Update game state
+    if gameState == MENU and menu.menuState == 'PLAY':
+        gameState = PLAYING
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT: # what happens when X is pressed
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE: # what happens when space is pressed
-                if gameState == MENU:
+                if gameState == MENU: # Remove this once menu button works
                     gameState = PLAYING
                 else:
                     print('Space is unmapped ... ya dingus')
@@ -463,6 +467,10 @@ while running:
                 boop.play()
                 captain.checkFacing()
                 captain.punch()
+            elif gameState == MENU:
+                mpos = pygame.mouse.get_pos()
+                for b in menu.activeButtons:
+                    b.checkClick(mpos)
         
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
             if gameState == PLAYING and captain.state == FREE:
