@@ -4,6 +4,7 @@ import functions
 import maps
 import enemies
 import collision
+import menu
 
 pygame.mixer.pre_init(22050, -16, 2, 2048)
 pygame.mixer.init()
@@ -26,9 +27,9 @@ EAST = 1
 SOUTH = 2
 WEST = 3
 
-## Game states - not in use, but will be eventually
+## Game states
 PLAYING = 0
-MAINMENU = 1
+MENU = 1
 PAUSED = 2
 
 ## Player states
@@ -42,8 +43,8 @@ DIE = 4 # playing the death animation
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
 kaboom = pygame.mixer.Sound('kaboorn.wav')
 
-## Fonts - not in use, but probably will be eventually
-font1 = pygame.font.SysFont('timesnewroman', 24)
+## Fonts
+font1 = pygame.font.SysFont('timesnewroman', 24) # Currently only used for FPS
 
 ## ************************************
 
@@ -80,6 +81,7 @@ beams[1] = pygame.transform.scale(beams[1], (80, 400))
 
 enemies.loadSprites()
 maps.loadSprites()
+menu.loadSprites((winlength, winheight))
 
 ## ****************************************
 
@@ -416,6 +418,8 @@ def drawParticles():
         i += 1
 
 ## Main loop
+gameState = MENU
+
 captain = player(maps.startpoints[1])
 
 enemyList = []
@@ -440,65 +444,71 @@ while running:
         if event.type == pygame.QUIT: # what happens when X is pressed
             running = False
         elif event.type == pygame.KEYDOWN:
-            if event.key == 32: # what happens when space is pressed
-                ## idk maybe space can be a pause button
-                print("Space doesn't do anything ya dingus")
+            if event.key == pygame.K_SPACE: # what happens when space is pressed
+                if gameState == MENU:
+                    gameState = PLAYING
+                else:
+                    print('Space is unmapped ... ya dingus')
                 
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1): # left mouse button
-            if captain.state == FREE:
+            if gameState == PLAYING and captain.state == FREE:
                 boop.play()
                 captain.checkFacing()
                 captain.punch()
         
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
-            if captain.state == FREE:
+            if gameState == PLAYING and captain.state == FREE:
                 kaboom.play()
                 captain.checkFacing()
                 captain.shootBeam()
      
     keys = pygame.key.get_pressed() # keys is a giant array of booleans
-    if keys[pygame.K_d]:
+    if keys[pygame.K_d] and gameState == PLAYING:
         captain.moveEast()
-    if keys[pygame.K_a]:
+    if keys[pygame.K_a] and gameState == PLAYING:
         captain.moveWest()
-    if keys[pygame.K_w]:
+    if keys[pygame.K_w] and gameState == PLAYING:
         captain.moveNorth()
-    if keys[pygame.K_s]:
+    if keys[pygame.K_s] and gameState == PLAYING:
         captain.moveSouth()
     ## Don't use elifs, or else diagonal mvmt won't be possible
     
-    currentMap.blit(bg, (0, 0)) # draws the level
-    ## This background is the main source of lag    
+    if gameState == PLAYING:
+        currentMap.blit(bg, (0, 0)) # draws the level
+        ## This background is the main source of lag    
         
-    if debug:
-        for i in range(len(walls)):
-            walls[i].draw(currentMap)    
-     
-    for e in enemyList:
-        if e.state == FREE:
-            if isinstance(e, enemies.Jelly):
-                e.moveToward(captain, walls)
-        e.draw(currentMap, debug)
+        if debug:
+            for i in range(len(walls)):
+                walls[i].draw(currentMap)    
+         
+        for e in enemyList:
+            if e.state == FREE:
+                if isinstance(e, enemies.Jelly):
+                    e.moveToward(captain, walls)
+            e.draw(currentMap, debug)
+        
+        ## It looks a bit better if the player can't move or turn while punching
+        if captain.state == PUNCH or captain.state == BEAM:
+            captain.checkFacing()
+        captain.draw()    
+        
+        signal.draw()
+        
+        drawParticles()  
+        
+        win.blit(currentMap, (camXpos, camYpos))
+        
+        ## Camera follow rect
+        if debug:
+            pygame.draw.rect(win, red, camFollowRect, 5)
+        
+        ## FPS display
+        if debug:
+            fpsText = font1.render(str(round(gameClock.get_fps())) + " FPS", False, black, white)
+            win.blit(fpsText, (winlength - fpsText.get_size()[0], 0))
     
-    ## It looks a bit better if the player can't move or turn while punching
-    if captain.state == PUNCH or captain.state == BEAM:
-        captain.checkFacing()
-    captain.draw()    
-    
-    signal.draw()
-    
-    drawParticles()  
-    
-    win.blit(currentMap, (camXpos, camYpos))
-    
-    ## Camera follow rect
-    if debug:
-        pygame.draw.rect(win, red, camFollowRect, 5)
-
-    ## FPS display
-    if debug:
-        fpsText = font1.render(str(round(gameClock.get_fps())) + " FPS", False, black, white)
-        win.blit(fpsText, (winlength - fpsText.get_size()[0], 0))
+    elif gameState == MENU:
+        menu.draw(win)
     
     pygame.display.update() # put this at the end of your main loop
 

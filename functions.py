@@ -90,13 +90,14 @@ def linesCross (line1S, line1E, line2S, line2E, ray):
     
     return output
 
-#Not in use
 def checkRectWithLine(lineS, lineE, rect, ray=False):
-    #Returns the point where a line first intersects with a rectangle.
-    #lineS is the starting coordinates of the lines (x,y), and lineE is the end coordinates.
-    #The output is the first collision travelling from start to end.
-    #rect is the coordinates of the top left corner, and the widht/height (x, y, width, height)
-    #ray is a boolean, if True the line will continue past its end coordinates.
+    '''
+    Returns the point where a line first intersects with a rectangle.
+    lineS is the starting coordinates of the lines (x,y), and lineE is the end coordinates.
+    The output is the first collision travelling from start to end.
+    rect is the coordinates of the top left corner, and the widht/height (x, y, width, height)
+    ray is a boolean, if True the line will continue past its end coordinates.
+    '''
     rectX, rectY, width, height = rect
 
     if lineS[0] < rectX:
