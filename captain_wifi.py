@@ -112,6 +112,7 @@ class PunchParticle(Particle):
         if self.powered:
             self.damage = 2
             self.radius = 30
+            self.colour = blue
         
         if hero.facing == NORTH:
             self.x = hero.x - self.radius
@@ -157,23 +158,25 @@ class BeamParticle(Particle):
         self.length = 200
         self.angle = functions.angleTo(self.x1, self.y1, mouseX, mouseY)        
         self.duration = 20
+        self.colour = red
         self.powered = wifi
         self.owner = hero
         self.damage = 1
         if self.powered:
             self.damage = 2
             self.length = 400
+            self.colour = blue
 
         self.x2 = self.x1 + math.cos(self.angle*math.pi/180)*self.length
         self.y2 = self.y1 + math.sin(self.angle*math.pi/180)*self.length
 
         hero.state = BEAM
         self.checkDamage(enemyList)
-
+         
     def draw(self):
         # do the image thing, self.angle is the angle given by angleTo
         # 0 = east, 90 = south, etc.
-        pygame.draw.line(currentMap, red, (self.x1, self.y1), (self.x2, self.y2), 10)
+        pygame.draw.line(currentMap, self.colour, (self.x1, self.y1), (self.x2, self.y2), 10)
 
 
     def stop(self):
