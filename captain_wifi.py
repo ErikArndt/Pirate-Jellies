@@ -429,15 +429,12 @@ bg = maps.loadBG(level)
 
 activeParticles = [] ## Array of particle effects
 
-debug = False
+debug = True
 gameClock = pygame.time.Clock()
 running = True
 while running:
     gameClock.tick()
     pygame.time.delay(10) ## apparently this helps with inputs
-    
-    currentMap.blit(bg, (0, 0)) # draws the level
-    ## This background is the main source of lag
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT: # what happens when X is pressed
@@ -470,10 +467,13 @@ while running:
         captain.moveSouth()
     ## Don't use elifs, or else diagonal mvmt won't be possible
     
+    currentMap.blit(bg, (0, 0)) # draws the level
+    ## This background is the main source of lag    
+        
     if debug:
         for i in range(len(walls)):
             walls[i].draw(currentMap)    
-    
+     
     for e in enemyList:
         if e.state == FREE:
             if isinstance(e, enemies.Jelly):
@@ -497,7 +497,7 @@ while running:
 
     ## FPS display
     if debug:
-        fpsText = font1.render(str(round(gameClock.get_fps())) + " FPS", False, blue)
+        fpsText = font1.render(str(round(gameClock.get_fps())) + " FPS", False, black, white)
         win.blit(fpsText, (winlength - fpsText.get_size()[0], 0))
     
     pygame.display.update() # put this at the end of your main loop
