@@ -105,7 +105,7 @@ menu.loadSprites((winlength, winheight))
 
 ## ****************************************
 
-level = 3 # This will be mutated
+level = 1 # This will be mutated
 maplength = maps.mapSizes[level][0]
 mapheight = maps.mapSizes[level][1]
 currentMap = pygame.Surface((maplength, mapheight))
@@ -546,6 +546,19 @@ def drawParticles():
                 p.checkDamage(enemyList)
         i += 1
 
+def reloadLevel():
+    '''
+    Call after changing level
+    '''
+    global walls, bg, enemyList, objList, camXpos, camYpos
+    captain.x = maps.startpoints[level][0]
+    captain.y = maps.startpoints[level][1]
+    walls = maps.loadWalls(level)
+    bg = maps.loadBG(level)
+    enemyList = maps.loadEnemies(level)
+    objList = maps.loadObjects(level)
+    camXpos, camYpos = maps.camStartpoints[level]    
+
 ## Main loop
 gameState = MENU
 
@@ -609,6 +622,12 @@ while running:
         captain.moveSouth()
         captain.isMoving = True
     ## Don't use elifs, or else diagonal mvmt won't be possible
+
+    # Check if level needs to be changed
+    if collision.rects((captain.x - captain.xRad, captain.y - captain.yRad, \
+                        2*captain.xRad, 2*captain.yRad), maps.nextLevelTriggers[level]):
+        level += 1
+        reloadLevel()
 
     # Idle animation
     if not keys[pygame.K_w] and not keys[pygame.K_a] and not keys[pygame.K_s] and not keys[pygame.K_d]:

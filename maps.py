@@ -10,8 +10,8 @@ WEST = 3
 mapSizes = ['dummy', (1500, 1500), (1500, 1250), (1100, 1100)]
 startpoints = ['dummy', (700, 1350), (100, 200), (550, 1050)]
 camStartpoints = ['dummy', (-300, -900), (0, 0), (-150, -500)]
-forwardDirs = ['dummy', EAST, NORTH, NORTH]
-backDirs = ['dummy', SOUTH, WEST, SOUTH]
+nextLevelTriggers = ['dummy', (1400, 100, 100, 200), 
+                     (1300, 0, 100, 100), (450, 0, 200, 100)]
 numLevels = 3
 
 
