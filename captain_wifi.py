@@ -237,6 +237,8 @@ class player:
             return
         self.y -= self.speed
 
+        self.facing = 0
+
         ## Collision stuffs
         for i in range(len(walls)):
             if collision.lineRect((walls[i].x, walls[i].y+walls[i].height), \
@@ -261,6 +263,7 @@ class player:
         if not(self.state == FREE):
             return        
         self.x += self.speed
+        self.facing = 1
         for i in range(len(walls)):
             if collision.lineRect((walls[i].x, walls[i].y), (walls[i].x, walls[i].y+walls[i].height),\
                                   (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), \
@@ -282,6 +285,7 @@ class player:
         if not(self.state == FREE):
             return        
         self.y += self.speed
+        self.facing = 2
         for i in range(len(walls)):
             if collision.lineRect((walls[i].x, walls[i].y), (walls[i].x+walls[i].width, walls[i].y),\
                                   (self.x-self.xRad, self.y-self.yRad, self.xRad*2, self.yRad*2), \
@@ -303,6 +307,7 @@ class player:
         if not(self.state == FREE):
             return        
         self.x -= self.speed
+        self.facing = 3
         for i in range(len(walls)):
             if collision.lineRect((walls[i].x+walls[i].width, walls[i].y), \
                                   (walls[i].x+walls[i].width, walls[i].y+walls[i].height),\
@@ -404,22 +409,24 @@ while running:
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1): # left mouse button
             if captain.state == FREE:
                 boop.play()
+                captain.checkFacing()
                 captain.punch()
         
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
             if captain.state == FREE:
                 kaboom.play()
+                captain.checkFacing()
                 captain.shootBeam()
      
     keys = pygame.key.get_pressed() # keys is a giant array of booleans
-    if keys[pygame.K_w]:
-        captain.moveNorth()
     if keys[pygame.K_d]:
         captain.moveEast()
-    if keys[pygame.K_s]:
-        captain.moveSouth()
     if keys[pygame.K_a]:
         captain.moveWest()
+    if keys[pygame.K_w]:
+        captain.moveNorth()
+    if keys[pygame.K_s]:
+        captain.moveSouth()
     ## Don't use elifs, or else diagonal mvmt won't be possible
     
     for i in range(len(walls)):
@@ -432,7 +439,7 @@ while running:
         e.draw(currentMap)
     
     ## It looks a bit better if the player can't move or turn while punching
-    if captain.state == FREE:
+    if captain.state == PUNCH or captain.state == BEAM:
         captain.checkFacing()
     captain.draw()    
     
