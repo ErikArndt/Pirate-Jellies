@@ -2,9 +2,16 @@ import pygame # I'll probably need it
 import collision
 import enemies
 
+NORTH = 0
+EAST = 1
+SOUTH = 2
+WEST = 3
+
 mapSizes = ['dummy', (1500, 1500), (1500, 1250), (1100, 1100)]
 startpoints = ['dummy', (700, 1350), (100, 200), (550, 1050)]
 camStartpoints = ['dummy', (-300, -900), (0, 0), (-150, -500)]
+forwardDirs = ['dummy', EAST, NORTH, NORTH]
+backDirs = ['dummy', SOUTH, WEST, SOUTH]
 numLevels = 3
 
 
@@ -25,7 +32,6 @@ class Wifi:
         if debug:
             pygame.draw.rect(m, pygame.Color('blue'), (self.x-self.imageRad, self.y-self.imageRad, \
                                                        self.imageRad*2, self.imageRad*2))
-
 
 def loadBG(levelID):
     '''
