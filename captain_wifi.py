@@ -102,12 +102,16 @@ class Particle:
 
 class PunchParticle(Particle):
     ## Subclass of particle. It also contains functions for damaging enemies.
-    def __init__(self, hero):
+    def __init__(self, hero, wifi):
         self.duration = 10
         self.radius = 15
         self.colour = red
         self.owner = hero
+        self.powered = wifi
         self.damage = 1
+        if self.powered:
+            self.damage = 2
+            self.radius = 30
         
         if hero.facing == NORTH:
             self.x = hero.x - self.radius
@@ -151,17 +155,17 @@ class BeamParticle(Particle):
         mouseX = pygame.mouse.get_pos()[0] - camXpos
         mouseY = pygame.mouse.get_pos()[1] - camYpos
         self.length = 200
-        self.angle = functions.angleTo(self.x1, self.y1, mouseX, mouseY)
-
-        self.x2 = self.x1 + math.cos(self.angle*math.pi/180)*self.length
-        self.y2 = self.y1 + math.sin(self.angle*math.pi/180)*self.length
-        
+        self.angle = functions.angleTo(self.x1, self.y1, mouseX, mouseY)        
         self.duration = 20
         self.powered = wifi
         self.owner = hero
         self.damage = 1
         if self.powered:
             self.damage = 2
+            self.length = 400
+
+        self.x2 = self.x1 + math.cos(self.angle*math.pi/180)*self.length
+        self.y2 = self.y1 + math.sin(self.angle*math.pi/180)*self.length
 
         hero.state = BEAM
         self.checkDamage(enemyList)
