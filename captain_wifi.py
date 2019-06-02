@@ -93,15 +93,6 @@ camXpos = -300 # these should always be negative
 camYpos = -900
 camFollowRect = (200, 200, winlength - 400, winheight - 400)
 
-class Wifi:
-    def __init__(self, x, y, radius):
-        self.x = x
-        self.y = y
-        self.radius = radius
-    def draw(self):
-        pygame.draw.ellipse(currentMap, blue, (self.x-self.radius, self.y-self.radius, \
-                                         self.radius*2, self.radius*2), 5)
-
 class Particle:
     ## This is a superclass. Don't actually use it. Use it's subclasses.
     def __init__(self, x, y, duration):
@@ -221,7 +212,7 @@ class BeamParticle(Particle):
     def stop(self):
         self.owner.state = FREE
     
-    def checkDamage(self, enemies):
+    def checkDamage(self, enemyList):
         for e in enemyList:
             if functions.checkRectWithLine((self.x1, self.y1), (self.x2, self.y2),\
                                            (e.x - e.xRad, e.y - e.yRad, 2*e.xRad, 2*e.yRad)) != (-1, -1):
@@ -309,11 +300,13 @@ class player:
                 and camYpos < 0):
                 camYpos += self.speed
             
-            # Checks if in wifi zone
-            if math.sqrt((self.x-signal.x)**2 + (self.y-signal.y)**2) <= signal.radius:
-                self.connected = True
-            else:
-                self.connected = False            
+        # Checks if in wifi zone
+        for o in objList:
+            if isinstance(o, maps.Wifi):
+                if math.sqrt((self.x-o.x)**2 + (self.y-o.y)**2) <= o.radius:
+                    self.connected = True
+                else:
+                    self.connected = False            
 
     def moveEast(self):
         if self.state != FREE:
@@ -331,10 +324,13 @@ class player:
             if (self.x + self.xRad + camXpos >= camFollowRect[0] + camFollowRect[2] \
                 and camXpos > -maplength + winlength):
                 camXpos -= self.speed
-            if math.sqrt((self.x-signal.x)**2 + (self.y-signal.y)**2) <= signal.radius:
-                self.connected = True
-            else:
-                self.connected = False
+        
+        for o in objList:
+            if isinstance(o, maps.Wifi):        
+                if math.sqrt((self.x-o.x)**2 + (self.y-o.y)**2) <= o.radius:
+                    self.connected = True
+                else:
+                    self.connected = False
                 
     
     def moveSouth(self):
@@ -353,10 +349,12 @@ class player:
             if (self.y + self.yRad + camYpos >= camFollowRect[1] + camFollowRect[3] \
                 and camYpos > -mapheight + winheight):
                 camYpos -= self.speed
-            if math.sqrt((self.x-signal.x)**2 + (self.y-signal.y)**2) <= signal.radius:
-                self.connected = True
-            else:
-                self.connected = False
+        for o in objList:
+            if isinstance(o, maps.Wifi):
+                if math.sqrt((self.x-o.x)**2 + (self.y-o.y)**2) <= o.radius:
+                    self.connected = True
+                else:
+                    self.connected = False
                 
     
     def moveWest(self):
@@ -376,10 +374,12 @@ class player:
             if (self.x - self.xRad + camXpos <= camFollowRect[0] \
                 and camXpos < 0):
                 camXpos += self.speed
-            if math.sqrt((self.x-signal.x)**2 + (self.y-signal.y)**2) <= signal.radius:
-                self.connected = True
-            else:
-                self.connected = False
+        for o in objList:
+            if isinstance(o, maps.Wifi):
+                if math.sqrt((self.x-o.x)**2 + (self.y-o.y)**2) <= o.radius:
+                    self.connected = True
+                else:
+                    self.connected = False
                 
         
     def checkFacing(self):
@@ -442,14 +442,10 @@ gameState = MENU
 
 captain = player(maps.startpoints[1])
 
-enemyList = []
-jelly1 = enemies.Jelly(700, 300)
-enemyList.append(jelly1)
-
-signal = Wifi(550, 400, 200)
-
 walls = maps.loadWalls(level)
 bg = maps.loadBG(level)
+enemyList = maps.loadEnemies(level)
+objList = maps.loadObjects(level)
 
 activeParticles = [] ## Array of particle effects
 
@@ -517,8 +513,8 @@ while running:
                 walls[i].draw(currentMap)    
          
         for e in enemyList:
-            if e.state == FREE:
-                if isinstance(e, enemies.Jelly):
+            if isinstance(e, enemies.Jelly):
+                if e.state == FREE:
                     e.moveToward(captain, walls)
                     # Checks if a jelly hit the player
                     if captain.animTimers['hurt'] <= 0:
@@ -526,7 +522,7 @@ while running:
                                            captain.xRad*2, captain.yRad*2), (e.x - e.xRad,\
                                            e.y - e.yRad, e.xRad*2, e.yRad*2)):
                             captain.hurt(1)
-            e.draw(currentMap, debug)
+                e.draw(currentMap, debug)
         
         ## It looks a bit better if the player can't move or turn while punching
         if captain.state == PUNCH or captain.state == BEAM:
@@ -536,9 +532,9 @@ while running:
         
         if captain.animTimers['hurt']%4 < 2:
             captain.draw()    
- 
-        
-        signal.draw()
+            
+        for o in objList:
+            o.draw(currentMap)
         
         drawParticles()  
         

@@ -1,9 +1,25 @@
 import pygame # I'll probably need it
 import collision
+import enemies
 
 mapSizes = ['dummy', (1500, 1500)]
 startpoints = ['dummy', (700, 1350)]
 numLevels = 1
+
+
+class Wifi:
+    def __init__(self, x, y, radius):
+        self.x = x
+        self.y = y
+        self.radius = radius
+    
+    def draw(self, m):
+        '''
+        Requires currentMap as a parameter
+        '''
+        pygame.draw.ellipse(m, pygame.Color('blue'), (self.x-self.radius, self.y-self.radius, \
+                                        self.radius*2, self.radius*2), 5)
+
 
 def loadBG(levelID):
     '''
@@ -75,6 +91,36 @@ def loadWalls(levelID):
     ## No other levels atm
     
     return walls
+
+def loadObjects(levelID):
+    '''
+    Returns a list of all objects (Wifi signals and enemies) for a given level.
+    '''
+    objects = []
+    if levelID < 1 or levelID > numLevels: # Only done 1 level so far
+        print("Error: level {} doesn't exist")
+        return objects
+    
+    if levelID == 1:
+        ## Wifi signals
+        objects.extend([Wifi(550, 400, 200)])
+    
+    return objects
+
+def loadEnemies(levelID):
+    '''
+    Returns a list of all enemies for a given level.
+    '''
+    elist = []
+    if levelID < 1 or levelID > numLevels: # Only done 1 level so far
+        print("Error: level {} doesn't exist")
+        return elist
+    
+    if levelID == 1:
+        ## Jellies
+        elist.extend([enemies.Jelly(700, 300)])
+    
+    return elist
 
 ## **************** Sprites *************
 ## Variable declarations
