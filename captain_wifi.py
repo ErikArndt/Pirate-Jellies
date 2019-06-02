@@ -116,19 +116,18 @@ class PunchParticle(Particle):
         
         if hero.facing == NORTH:
             self.x = hero.x - self.radius
-            self.y = hero.y - hero.yRad - 2*self.radius
+            self.y = hero.y - hero.yRad - 2*self.radius - 20
         elif hero.facing == EAST:
-            self.x = hero.x + hero.xRad
+            self.x = hero.x + hero.xRad + 20
             self.y = hero.y - self.radius
         elif hero.facing == SOUTH:
             self.x = hero.x - self.radius
-            self.y = hero.y + hero.yRad
+            self.y = hero.y + hero.yRad + 20
         else: # West
-            self.x = hero.x - hero.xRad - 2*self.radius
+            self.x = hero.x - hero.xRad - 2*self.radius - 20
             self.y = hero.y - self.radius
         
         hero.state = PUNCH
-        self.checkDamage(enemyList)
     
     def draw(self):
         pygame.draw.rect(currentMap, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
@@ -171,8 +170,7 @@ class BeamParticle(Particle):
         self.y2 = self.y1 + math.sin(self.angle*math.pi/180)*self.length
 
         hero.state = BEAM
-        self.checkDamage(enemyList)
-         
+
     def draw(self):
         # do the image thing, self.angle is the angle given by angleTo
         # 0 = east, 90 = south, etc.
@@ -346,7 +344,7 @@ class player:
             self.facing = WEST
     
     def punch(self):
-        activeParticles.append(PunchParticle(self))
+        activeParticles.append(PunchParticle(self, self.connected))
 
     def shootBeam(self):
         activeParticles.append(BeamParticle(self, self.connected))
@@ -367,6 +365,8 @@ def drawParticles():
         else:
             p.duration -= 1
             p.draw()
+            if isinstance(p, PunchParticle) or isinstance(p, BeamParticle):
+                p.checkDamage(enemyList)
         i += 1
 
 ## Main loop

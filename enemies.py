@@ -48,6 +48,7 @@ class Jelly(Enemy):
         self.state = FREE
         self.damage = 1
         self.health = 3
+        self.iFrames = 20
         self.animTimers = {
             'hurt': 0,
             'die': 100
@@ -61,7 +62,7 @@ class Jelly(Enemy):
             pygame.draw.rect(m, pygame.Color('yellow'), (self.x - self.xRad, self.y - self.yRad, \
                                                          self.xRad*2, self.yRad*2))
         elif self.state == HURT:
-            pygame.draw.rect(m, (255, 255, 5 + 25*self.animTimers['hurt']), \
+            pygame.draw.rect(m, (255, 255, (255/self.iFrames)*self.animTimers['hurt']), \
                              (self.x - self.xRad, self.y - self.yRad, self.xRad*2, self.yRad*2))
             ## Update the animations and/or state
             if self.animTimers['hurt'] <= 0:
@@ -152,7 +153,7 @@ class Jelly(Enemy):
             self.die()
         else:
             self.state = HURT
-            self.animTimers['hurt'] = 10
+            self.animTimers['hurt'] = self.iFrames
         return
     
     def die(self):
