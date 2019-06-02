@@ -144,12 +144,12 @@ class PunchParticle(Particle):
         return
 
 class player:
-    def __init__(self, startingX, startingY):
+    def __init__(self, startingPos):
         '''
         Player must be initialized with starting x and y coordinates.
         '''
-        self.x = startingX
-        self.y = startingY
+        self.x = startingPos[0]
+        self.y = startingPos[1]
         self.facing = NORTH
         self.speed = 4
         self.xRad = 25
@@ -320,7 +320,7 @@ def drawParticles():
         i += 1
 
 ## Main loop
-captain = player(700, 1350)
+captain = player(maps.l1.startpoint)
 
 enemyList = []
 jelly1 = enemies.Jelly(1000, 1100)
