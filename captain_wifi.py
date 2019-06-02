@@ -136,6 +136,7 @@ class PunchParticle(Particle):
         self.colour = red # just for hitbox, will eventually remove
         self.owner = hero
         self.powered = wifi
+        self.owner.particle = self
         self.damage = 1
         if self.powered:
             self.damage = 2
@@ -252,6 +253,7 @@ class player:
         self.xRad = 25
         self.yRad = 50
         self.isMoving = False
+        self.particle = 0 # will point to a punch/beam particle
         
         self.health = 4
         self.state = FREE
@@ -342,6 +344,43 @@ class player:
                         print('Error: player is not facing a valid direction.')
                         running = False
                 self.animTimers['walk'] -= 1
+        elif self.state == PUNCH:
+            if self.particle.duration >= 6:
+                if self.facing == NORTH:
+                    currentMap.blit(punchPoses[0], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == EAST:
+                    currentMap.blit(punchPoses[2], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == SOUTH:
+                    currentMap.blit(punchPoses[4], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == WEST:
+                    currentMap.blit(punchPoses[6], (self.x - self.xRad, self.y - self.yRad - 25))
+                else:
+                    print('Error: player is not facing a valid direction.')
+                    running = False
+            else:
+                if self.facing == NORTH:
+                    currentMap.blit(punchPoses[1], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == EAST:
+                    currentMap.blit(punchPoses[3], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == SOUTH:
+                    currentMap.blit(punchPoses[5], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == WEST:
+                    currentMap.blit(punchPoses[7], (self.x - self.xRad, self.y - self.yRad - 25))
+                else:
+                    print('Error: player is not facing a valid direction.')
+                    running = False
+        elif self.state == BEAM:
+            if self.facing == NORTH:
+                currentMap.blit(punchPoses[1], (self.x - self.xRad, self.y - self.yRad - 25))
+            elif self.facing == EAST:
+                currentMap.blit(punchPoses[3], (self.x - self.xRad, self.y - self.yRad - 25))
+            elif self.facing == SOUTH:
+                currentMap.blit(punchPoses[5], (self.x - self.xRad, self.y - self.yRad - 25))
+            elif self.facing == WEST:
+                currentMap.blit(punchPoses[7], (self.x - self.xRad, self.y - self.yRad - 25))
+            else:
+                print('Error: player is not facing a valid direction.')
+                running = False
                 
     
     def moveNorth(self):
