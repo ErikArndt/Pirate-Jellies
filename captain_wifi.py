@@ -1,4 +1,4 @@
-import math ## We'll probably end up needing this eventually
+import math
 import pygame
 import functions
 import maps
@@ -65,6 +65,21 @@ idles = [pygame.image.load('images/idleU1.png').convert_alpha(), \
 for i in range(len(idles)):
     idles[i] = pygame.transform.scale(idles[i], (50, 125))
 
+punches = [pygame.image.load('images/punch1.png').convert_alpha(), \
+           pygame.image.load('images/punch2.png').convert_alpha()]
+punches[0] = pygame.transform.scale(punches[0], (30, 30))
+punches[1] = pygame.transform.scale(punches[1], (60, 60))
+## I probably shouldn't hard code those numbers, but whatever
+
+beams = [pygame.image.load('images/beam1.png').convert_alpha(), \
+         pygame.image.load('images/beam2.png').convert_alpha()]
+beams[0] = pygame.transform.scale(beams[0], (80, 200))
+beams[1] = pygame.transform.scale(beams[1], (80, 400))
+## 80 was arrived at through trial and error.
+## If you change it here, change it in beam.draw() as well
+
+enemies.loadSprites()
+
 ## ****************************************
 
 level = 1 # This will be mutated
@@ -105,7 +120,7 @@ class PunchParticle(Particle):
     def __init__(self, hero, wifi):
         self.duration = 10
         self.radius = 15
-        self.colour = red
+        self.colour = red # just for hitbox, will eventually remove
         self.owner = hero
         self.powered = wifi
         self.damage = 1
@@ -114,6 +129,7 @@ class PunchParticle(Particle):
             self.radius = 30
             self.colour = blue
         
+        ## these coordinates are for the top left corner
         if hero.facing == NORTH:
             self.x = hero.x - self.radius
             self.y = hero.y - hero.yRad - 2*self.radius - 20
@@ -130,7 +146,12 @@ class PunchParticle(Particle):
         hero.state = PUNCH
     
     def draw(self):
-        pygame.draw.rect(currentMap, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
+        ## hitbox
+        if debug:
+            pygame.draw.rect(currentMap, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
+        currentMap.blit(punches[self.powered], (self.x, self.y))
+        ## I used a boolean to index a list, which is sketchy but it looks so cool
+        ## False becomes 0, True becomes 1
     
     def stop(self):
         self.owner.state = FREE
@@ -172,9 +193,27 @@ class BeamParticle(Particle):
         hero.state = BEAM
 
     def draw(self):
-        # do the image thing, self.angle is the angle given by angleTo
-        # 0 = east, 90 = south, etc.
-        pygame.draw.line(currentMap, self.colour, (self.x1, self.y1), (self.x2, self.y2), 10)
+        ## debug Hitline:
+        if debug:
+            pygame.draw.line(currentMap, self.colour, (self.x1, self.y1), (self.x2, self.y2), 10)
+        b = pygame.transform.rotate(beams[self.powered], -1*(self.angle - 90))
+        if self.angle >= 270: # NE
+            angle = -1*self.angle
+            beamX = self.x1 - 40 * math.sin(math.radians(angle))
+            beamY = self.y2 - 40 * math.cos(math.radians(angle))
+        elif self.angle >= 180: # NW
+            angle = self.angle - 180
+            beamX = self.x2 - 40 * math.sin(math.radians(angle))
+            beamY = self.y2 - 40 * math.cos(math.radians(angle))
+        elif self.angle >= 90: # SW
+            angle = 180 - self.angle
+            beamX = self.x2 - 40 * math.sin(math.radians(angle))
+            beamY = self.y1 - 40 * math.cos(math.radians(angle))
+        else: ## SE
+            angle = self.angle
+            beamX = self.x1 - 40 * math.sin(math.radians(angle))
+            beamY = self.y1 - 40 * math.cos(math.radians(angle))
+        currentMap.blit(b, (beamX, beamY))
 
 
     def stop(self):
@@ -212,12 +251,13 @@ class player:
         Draws the player character
         '''
         ## Hitbox indicator
-        if self.connected:
-            pygame.draw.rect(currentMap, blue, (self.x - self.xRad, self.y - self.yRad, \
-                                          self.xRad*2, self.yRad*2))  
-        else:
-            pygame.draw.rect(currentMap, green, (self.x - self.xRad, self.y - self.yRad, \
-                                          self.xRad*2, self.yRad*2))
+        if debug:
+            if self.connected:
+                pygame.draw.rect(currentMap, blue, (self.x - self.xRad, self.y - self.yRad, \
+                                              self.xRad*2, self.yRad*2))  
+            else:
+                pygame.draw.rect(currentMap, green, (self.x - self.xRad, self.y - self.yRad, \
+                                              self.xRad*2, self.yRad*2))
         ## For now I'm just using the basic idle sprites
         if self.facing == NORTH:
             currentMap.blit(idles[0], (self.x - self.xRad, self.y - self.yRad - 25))
@@ -373,7 +413,7 @@ def drawParticles():
 captain = player(maps.l1.startpoint)
 
 enemyList = []
-jelly1 = enemies.Jelly(1000, 1100)
+jelly1 = enemies.Jelly(700, 300)
 enemyList.append(jelly1)
 
 signal = Wifi(550, 400, 200)
@@ -429,7 +469,7 @@ while running:
         if e.state == FREE:
             if isinstance(e, enemies.Jelly):
                 e.moveToward(captain, walls)
-        e.draw(currentMap)
+        e.draw(currentMap, debug)
     
     ## It looks a bit better if the player can't move or turn while punching
     if captain.state == FREE:

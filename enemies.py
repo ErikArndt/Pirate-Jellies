@@ -37,6 +37,7 @@ class Jelly(Enemy):
         self.y = startingY
         self.xRad = 20
         self.yRad = 20
+        self.angle = 0
         
         self.speedCap = 5
         self.accel = 0.1
@@ -54,16 +55,38 @@ class Jelly(Enemy):
             'die': 100
         }
     
-    def draw(self, m):
+    def draw(self, m, debug=False):
         '''
-        Consumes the current map surface.
+        Consumes the current map surface. Turns the jelly to face the hero, and
+        draws the jelly on the given surface.
         '''
-        if self.state == FREE:
+        ## hitbox
+        if debug:
             pygame.draw.rect(m, pygame.Color('yellow'), (self.x - self.xRad, self.y - self.yRad, \
-                                                         self.xRad*2, self.yRad*2))
+                                                         self.xRad*2, self.yRad*2))            
+        
+        if self.state == FREE:
+            ## faces hero
+            if self.angle >= 45 and self.angle <= 135: # South
+                m.blit(jellySprites[2], (self.x - self.xRad, self.y - self.yRad))
+            elif self.angle > 135 and self.angle < 225: # West
+                m.blit(jellySprites[3], (self.x - self.xRad, self.y - self.yRad))
+            elif self.angle >= 225 and self.angle <= 315: # North
+                m.blit(jellySprites[0], (self.x - self.xRad, self.y - self.yRad))
+            else: # East
+                m.blit(jellySprites[1], (self.x - self.xRad, self.y - self.yRad))
+            
         elif self.state == HURT:
-            pygame.draw.rect(m, (255, 255, (255/self.iFrames)*self.animTimers['hurt']), \
-                             (self.x - self.xRad, self.y - self.yRad, self.xRad*2, self.yRad*2))
+            ## I'm gonna reuse the basic sprites 'cause I don't know what else to do
+            if self.angle >= 45 and self.angle <= 135: # South
+                m.blit(jellySprites[2], (self.x - self.xRad, self.y - self.yRad))
+            elif self.angle > 135 and self.angle < 225: # West
+                m.blit(jellySprites[3], (self.x - self.xRad, self.y - self.yRad))
+            elif self.angle >= 225 and self.angle <= 315: # North
+                m.blit(jellySprites[0], (self.x - self.xRad, self.y - self.yRad))
+            else: # East
+                m.blit(jellySprites[1], (self.x - self.xRad, self.y - self.yRad))
+                
             ## Update the animations and/or state
             if self.animTimers['hurt'] <= 0:
                 self.state = FREE
@@ -91,9 +114,9 @@ class Jelly(Enemy):
         Note: This does not check the enemy's state to see if it is allowed to
         move or not.
         '''
-        angle = functions.angleTo(self.x, self.y, hero.x, hero.y)
-        self.xAccel = self.accel * math.cos(math.radians(angle))
-        self.yAccel = self.accel * math.sin(math.radians(angle))
+        self.angle = functions.angleTo(self.x, self.y, hero.x, hero.y)
+        self.xAccel = self.accel * math.cos(math.radians(self.angle))
+        self.yAccel = self.accel * math.sin(math.radians(self.angle))
         self.xSpeed += self.xAccel
         self.ySpeed += self.yAccel
         
@@ -162,3 +185,18 @@ class Jelly(Enemy):
         Currently does not remove enemy from enemies.
         '''
         self.state = DIE
+
+## ******************** Sprites *************
+
+jellySprites = []
+
+def loadSprites():
+    '''
+    Call this immediately after defining win
+    '''
+    jellySprites.extend([pygame.image.load('images/jellyU.png').convert_alpha(),
+                         pygame.image.load('images/jellyR.png').convert_alpha(),
+                         pygame.image.load('images/jellyD.png').convert_alpha(),
+                         pygame.image.load('images/jellyL.png').convert_alpha()])
+    for i in range(len(jellySprites)):
+        jellySprites[i] = pygame.transform.scale(jellySprites[i], (40, 40))
