@@ -141,7 +141,7 @@ class PunchParticle(Particle):
         method on any enemies that were hit.
         '''
         for e in enemyList:
-            if collision.rects((self.x - self.radius, self.y - self.radius, \
+            if collision.rects((self.x, self.y, \
                                         2*self.radius, 2*self.radius), \
                                        (e.x - e.xRad, e.y - e.yRad, 2*e.xRad, 2*e.yRad)):
                 if e.state == FREE: ## Might need to add more states

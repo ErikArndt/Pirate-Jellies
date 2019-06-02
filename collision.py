@@ -25,8 +25,7 @@ def rects(rect1, rect2):
     '''
     x1, y1, width1, height1 = rect1
     x2, y2, width2, height2 = rect2
-    if ((x1 > x2 and x1 < x2+width2) or (x1+width1 > x2 and x1+width1 < x2+width2)) \
-       and ((y1 > y2 and y1 < y2+height2) or (y1+height1 > y2 and y1+height1 < y2+height2)):
+    if x2 < x1+width1 and y2 <y1+height1 and x2 + width2 > x1 and y2 + height2 > y1:
         output = True
     else:
         output = False
