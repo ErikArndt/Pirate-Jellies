@@ -34,8 +34,9 @@ PAUSED = 2
 ## Player states
 FREE = 0 # walking or idle
 PUNCH = 1 # punching
-HURT = 2 # just been damaged
-DIE = 3 # playing the death animation
+BEAM = 2 # shooting beam
+HURT = 3 # just been damaged
+DIE = 4 # playing the death animation
 
 ## Sounds - these are just placeholders
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
@@ -144,15 +145,20 @@ class PunchParticle(Particle):
         return
 
 class BeamParticle(Particle):
-    def __init__(self, mouseX, mouseY, hero, wifi):
+    def __init__(self, hero, wifi):
         self.x1 = hero.x
         self.y1 = hero.y
-        self.x2 = mouseX
-        self.y2 = mouseY
+        mouseX = pygame.mouse.get_pos()[0] - camXpos
+        mouseY = pygame.mouse.get_pos()[1] - camYpos
+        self.length = 200
+        self.angle = functions.angleTo(self.x1, self.y1, mouseX, mouseY)
+
+        self.x2 = self.x1 + math.cos(self.angle*math.pi/180)*self.length
+        self.y2 = self.y1 + math.sin(self.angle*math.pi/180)*self.length
+        
         self.duration = 20
         self.powered = wifi
         self.owner = hero
-        self.angle = functions.angleTo(self.x1, self.y1, self.x2, self.y2)
         self.damage = 1
         if self.powered:
             self.damage = 2
@@ -160,9 +166,11 @@ class BeamParticle(Particle):
         hero.state = BEAM
         self.checkDamage(enemyList)
 
-    #def draw(self):
+    def draw(self):
         # do the image thing, self.angle is the angle given by angleTo
         # 0 = east, 90 = south, etc.
+        pygame.draw.line(currentMap, red, (self.x1, self.y1), (self.x2, self.y2), 10)
+
 
     def stop(self):
         self.owner.state = FREE
@@ -332,6 +340,9 @@ class player:
     
     def punch(self):
         activeParticles.append(PunchParticle(self))
+
+    def shootBeam(self):
+        activeParticles.append(BeamParticle(self, self.connected))
             
 def drawParticles():
     '''
@@ -389,7 +400,9 @@ while running:
                 captain.punch()
         
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
-            kaboom.play()
+            if captain.state == FREE:
+                kaboom.play()
+                captain.shootBeam()
      
     keys = pygame.key.get_pressed() # keys is a giant array of booleans
     if keys[pygame.K_w]:
