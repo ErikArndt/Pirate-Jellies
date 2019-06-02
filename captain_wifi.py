@@ -67,8 +67,8 @@ for i in range(len(idles)):
 
 punches = [pygame.image.load('images/punch1.png').convert_alpha(), \
            pygame.image.load('images/punch2.png').convert_alpha()]
-punches[0] = pygame.transform.scale(punches[0], (30, 30))
-punches[1] = pygame.transform.scale(punches[1], (60, 60))
+punches[0] = pygame.transform.scale(punches[0], (50, 50))
+punches[1] = pygame.transform.scale(punches[1], (80, 80))
 ## I probably shouldn't hard code those numbers, but whatever
 
 beams = [pygame.image.load('images/beam1.png').convert_alpha(), \
@@ -150,7 +150,7 @@ class PunchParticle(Particle):
         ## hitbox
         if debug:
             pygame.draw.rect(currentMap, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
-        currentMap.blit(punches[self.powered], (self.x, self.y))
+        currentMap.blit(punches[self.powered], (self.x-10, self.y-10))
         ## I used a boolean to index a list, which is sketchy but it looks so cool
         ## False becomes 0, True becomes 1
     
@@ -218,6 +218,7 @@ class BeamParticle(Particle):
 
 
     def stop(self):
+        
         self.owner.state = FREE
     
     def checkDamage(self, enemies):
