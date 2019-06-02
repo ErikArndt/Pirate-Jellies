@@ -36,8 +36,7 @@ PAUSED = 2
 FREE = 0 # walking or idle
 PUNCH = 1 # punching
 BEAM = 2 # shooting beam
-HURT = 3 # just been damaged
-DIE = 4 # playing the death animation
+DIE = 3 # playing the death animation
 
 ## Sounds - these are just placeholders
 boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
@@ -68,8 +67,8 @@ for i in range(len(idles)):
 
 punches = [pygame.image.load('images/punch1.png').convert_alpha(), \
            pygame.image.load('images/punch2.png').convert_alpha()]
-punches[0] = pygame.transform.scale(punches[0], (30, 30))
-punches[1] = pygame.transform.scale(punches[1], (60, 60))
+punches[0] = pygame.transform.scale(punches[0], (60, 60))
+punches[1] = pygame.transform.scale(punches[1], (80, 80))
 ## I probably shouldn't hard code those numbers, but whatever
 
 beams = [pygame.image.load('images/beam1.png').convert_alpha(), \
@@ -122,7 +121,7 @@ class PunchParticle(Particle):
     ## Subclass of particle. It also contains functions for damaging enemies.
     def __init__(self, hero, wifi):
         self.duration = 10
-        self.radius = 15
+        self.radius = 20
         self.colour = red # just for hitbox, will eventually remove
         self.owner = hero
         self.powered = wifi
@@ -152,7 +151,7 @@ class PunchParticle(Particle):
         ## hitbox
         if debug:
             pygame.draw.rect(currentMap, self.colour, (self.x, self.y, 2*self.radius, 2*self.radius))
-        currentMap.blit(punches[self.powered], (self.x, self.y))
+        currentMap.blit(punches[self.powered], (self.x - 10, self.y - 10))
         ## I used a boolean to index a list, which is sketchy but it looks so cool
         ## False becomes 0, True becomes 1
     
@@ -244,8 +243,10 @@ class player:
         
         self.health = 4
         self.state = FREE
+        self.iFrames = 60
         self.animTimers = {
-            'idle': 0 # 0 means animation is not playing, positive means it's playing
+            'idle': 0, # 0 means animation is not playing, positive means it's playing
+            'hurt': 0
         }
         self.connected = False
     
@@ -276,7 +277,7 @@ class player:
     
     def moveNorth(self):
         ## Ensures the player can actually move
-        if not(self.state == FREE):
+        if self.state != FREE:
             return
         self.y -= self.speed
 
@@ -303,7 +304,7 @@ class player:
                 self.connected = False            
 
     def moveEast(self):
-        if not(self.state == FREE):
+        if self.state != FREE:
             return        
         self.x += self.speed
         self.facing = 1
@@ -325,7 +326,7 @@ class player:
                 
     
     def moveSouth(self):
-        if not(self.state == FREE):
+        if self.state != FREE:
             return        
         self.y += self.speed
         self.facing = 2
@@ -347,7 +348,7 @@ class player:
                 
     
     def moveWest(self):
-        if not(self.state == FREE):
+        if self.state != FREE:
             return        
         self.x -= self.speed
         self.facing = 3
@@ -390,6 +391,13 @@ class player:
             self.facing = EAST
         else:
             self.facing = WEST
+    
+    def hurt(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            print('oops you deaded yourself')
+        else:
+            self.animTimers['hurt'] = self.iFrames
     
     def punch(self):
         activeParticles.append(PunchParticle(self, self.connected))
@@ -485,12 +493,23 @@ while running:
             if e.state == FREE:
                 if isinstance(e, enemies.Jelly):
                     e.moveToward(captain, walls)
+                    # Checks if a jelly hit the player
+                    if captain.animTimers['hurt'] <= 0:
+                        if collision.rects((captain.x - captain.xRad, captain.y - captain.yRad,\
+                                           captain.xRad*2, captain.yRad*2), (e.x - e.xRad,\
+                                           e.y - e.yRad, e.xRad*2, e.yRad*2)):
+                            captain.hurt(1)
             e.draw(currentMap, debug)
         
         ## It looks a bit better if the player can't move or turn while punching
         if captain.state == PUNCH or captain.state == BEAM:
             captain.checkFacing()
-        captain.draw()    
+        if captain.animTimers['hurt'] > 0:
+            captain.animTimers['hurt'] -= 1
+        
+        if captain.animTimers['hurt']%4 < 2:
+            captain.draw()    
+ 
         
         signal.draw()
         
