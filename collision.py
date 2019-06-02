@@ -9,7 +9,7 @@ class Wall:
 
     def draw(self, m):
         '''
-        Requires the current map surface.
+        Requires the current map surface. Intended for debug mode only.
         '''
         pygame.draw.rect(m, pygame.Color('black'), (self.x, self.y, self.width, \
                                                     self.height), 0)

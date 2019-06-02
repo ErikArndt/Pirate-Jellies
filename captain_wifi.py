@@ -79,6 +79,7 @@ beams[1] = pygame.transform.scale(beams[1], (80, 400))
 ## If you change it here, change it in beam.draw() as well
 
 enemies.loadSprites()
+maps.loadSprites()
 
 ## ****************************************
 
@@ -415,7 +416,7 @@ def drawParticles():
         i += 1
 
 ## Main loop
-captain = player(maps.l1.startpoint)
+captain = player(maps.startpoints[1])
 
 enemyList = []
 jelly1 = enemies.Jelly(700, 300)
@@ -428,7 +429,7 @@ bg = maps.loadBG(level)
 
 activeParticles = [] ## Array of particle effects
 
-debug = True
+debug = False
 gameClock = pygame.time.Clock()
 running = True
 while running:
@@ -469,8 +470,9 @@ while running:
         captain.moveSouth()
     ## Don't use elifs, or else diagonal mvmt won't be possible
     
-    for i in range(len(walls)):
-        walls[i].draw(currentMap)    
+    if debug:
+        for i in range(len(walls)):
+            walls[i].draw(currentMap)    
     
     for e in enemyList:
         if e.state == FREE:
