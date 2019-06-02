@@ -54,7 +54,7 @@ pygame.display.set_caption('Captain WiFi') # sets the window caption
 ## ******************* IMAGES *************
 ## I need to put them here after defining win
 
-idles = [pygame.image.load('images/idleU1.png').convert_alpha(), \
+idles = [pygame.image.load('images/idleU1.png').convert_alpha(),
          pygame.image.load('images/idleU2.png').convert_alpha(),
          pygame.image.load('images/idleR1.png').convert_alpha(),
          pygame.image.load('images/idleR2.png').convert_alpha(),
@@ -62,8 +62,29 @@ idles = [pygame.image.load('images/idleU1.png').convert_alpha(), \
          pygame.image.load('images/idleD2.png').convert_alpha(),
          pygame.image.load('images/idleL1.png').convert_alpha(),
          pygame.image.load('images/idleL2.png').convert_alpha()]
+
+punchPoses = [pygame.image.load('images/punchU1.png').convert_alpha(),
+           pygame.image.load('images/punchU2.png').convert_alpha(),
+           pygame.image.load('images/punchR1.png').convert_alpha(),
+           pygame.image.load('images/punchR2.png').convert_alpha(),
+           pygame.image.load('images/punchD1.png').convert_alpha(),
+           pygame.image.load('images/punchD2.png').convert_alpha(),
+           pygame.image.load('images/punchL1.png').convert_alpha(),
+           pygame.image.load('images/punchL2.png').convert_alpha()]
+
+walkPoses = [pygame.image.load('images/walkU1.png').convert_alpha(),
+         pygame.image.load('images/walkU2.png').convert_alpha(),
+         pygame.image.load('images/walkR1.png').convert_alpha(),
+         pygame.image.load('images/walkD1.png').convert_alpha(),
+         pygame.image.load('images/walkD2.png').convert_alpha(),
+         pygame.image.load('images/walkL1.png').convert_alpha(),]
+
 for i in range(len(idles)):
     idles[i] = pygame.transform.scale(idles[i], (50, 125))
+for i in range(len(punchPoses)):
+    punchPoses[i] = pygame.transform.scale(punchPoses[i], (50, 125))
+for i in range(len(walkPoses)):
+    walkPoses[i] = pygame.transform.scale(walkPoses[i], (50, 125))
 
 punches = [pygame.image.load('images/punch1.png').convert_alpha(), \
            pygame.image.load('images/punch2.png').convert_alpha()]
@@ -84,7 +105,7 @@ menu.loadSprites((winlength, winheight))
 
 ## ****************************************
 
-level = 1 # This will be mutated
+level = 3 # This will be mutated
 maplength = maps.mapSizes[level][0]
 mapheight = maps.mapSizes[level][1]
 currentMap = pygame.Surface((maplength, mapheight))
@@ -230,13 +251,15 @@ class player:
         self.speed = 4
         self.xRad = 25
         self.yRad = 50
+        self.isMoving = False
         
         self.health = 4
         self.state = FREE
         self.iFrames = 60
         self.animTimers = {
             'idle': 0, # 0 means animation is not playing, positive means it's playing
-            'hurt': 0
+            'hurt': 0,
+            'walk': 0
         }
         self.connected = False
     
@@ -252,30 +275,74 @@ class player:
             else:
                 pygame.draw.rect(currentMap, green, (self.x - self.xRad, self.y - self.yRad, \
                                               self.xRad*2, self.yRad*2))
-        if self.animTimers['idle'] <30:
-            if self.facing == NORTH:
-                currentMap.blit(idles[1], (self.x - self.xRad, self.y - self.yRad - 25))
-            elif self.facing == EAST:
-                currentMap.blit(idles[3], (self.x - self.xRad, self.y - self.yRad - 25))
-            elif self.facing == SOUTH:
-                currentMap.blit(idles[5], (self.x - self.xRad, self.y - self.yRad - 25))
-            elif self.facing == WEST:
-                currentMap.blit(idles[7], (self.x - self.xRad, self.y - self.yRad - 25))
+        if self.state == FREE and not self.isMoving:
+            if self.animTimers['idle'] <30:
+                if self.facing == NORTH:
+                    currentMap.blit(idles[1], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == EAST:
+                    currentMap.blit(idles[3], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == SOUTH:
+                    currentMap.blit(idles[5], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == WEST:
+                    currentMap.blit(idles[7], (self.x - self.xRad, self.y - self.yRad - 25))
+                else:
+                    print('Error: player is not facing a valid direction.')
+                    running = False
             else:
-                print('Error: player is not facing a valid direction.')
-                running = False
-        else:
-            if self.facing == NORTH:
-                currentMap.blit(idles[0], (self.x - self.xRad, self.y - self.yRad - 25))
-            elif self.facing == EAST:
-                currentMap.blit(idles[2], (self.x - self.xRad, self.y - self.yRad - 25))
-            elif self.facing == SOUTH:
-                currentMap.blit(idles[4], (self.x - self.xRad, self.y - self.yRad - 25))
-            elif self.facing == WEST:
-                currentMap.blit(idles[6], (self.x - self.xRad, self.y - self.yRad - 25))
+                if self.facing == NORTH:
+                    currentMap.blit(idles[0], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == EAST:
+                    currentMap.blit(idles[2], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == SOUTH:
+                    currentMap.blit(idles[4], (self.x - self.xRad, self.y - self.yRad - 25))
+                elif self.facing == WEST:
+                    currentMap.blit(idles[6], (self.x - self.xRad, self.y - self.yRad - 25))
+                else:
+                    print('Error: player is not facing a valid direction.')
+                    running = False
+        #walking animations
+        elif self.state == FREE:
+            if self.animTimers['walk'] <= 0:
+                self.animTimers['walk'] = 80
             else:
-                print('Error: player is not facing a valid direction.')
-                running = False
+                if self.animTimers['walk'] < 20 or (self.animTimers['walk'] < 60 and self.animTimers['walk'] >=40):
+                    if self.facing == NORTH:
+                        currentMap.blit(idles[1], (self.x - self.xRad, self.y - self.yRad - 25))
+                    elif self.facing == EAST:
+                        currentMap.blit(idles[3], (self.x - self.xRad, self.y - self.yRad - 25))
+                    elif self.facing == SOUTH:
+                        currentMap.blit(idles[5], (self.x - self.xRad, self.y - self.yRad - 25))
+                    elif self.facing == WEST:
+                        currentMap.blit(idles[7], (self.x - self.xRad, self.y - self.yRad - 25))
+                    else:
+                        print('Error: player is not facing a valid direction.')
+                        running = False
+                elif self.animTimers['walk'] >= 60:
+                    if self.facing == NORTH:
+                        currentMap.blit(walkPoses[0], (self.x - self.xRad, self.y - self.yRad - 25))
+                    elif self.facing == EAST:
+                        currentMap.blit(walkPoses[2], (self.x - self.xRad, self.y - self.yRad - 25))
+                    elif self.facing == SOUTH:
+                        currentMap.blit(walkPoses[3], (self.x - self.xRad, self.y - self.yRad - 25))
+                    elif self.facing == WEST:
+                        currentMap.blit(walkPoses[5], (self.x - self.xRad, self.y - self.yRad - 25))
+                    else:
+                        print('Error: player is not facing a valid direction.')
+                        running = False
+                elif self.animTimers['walk'] < 40 and self.animTimers['walk'] >= 20:
+                    if self.facing == NORTH:
+                        currentMap.blit(walkPoses[1], (self.x - self.xRad, self.y - self.yRad - 25))
+                    elif self.facing == EAST:
+                        currentMap.blit(walkPoses[2], (self.x - self.xRad, self.y - self.yRad - 25))
+                    elif self.facing == SOUTH:
+                        currentMap.blit(walkPoses[4], (self.x - self.xRad, self.y - self.yRad - 25))
+                    elif self.facing == WEST:
+                        currentMap.blit(walkPoses[5], (self.x - self.xRad, self.y - self.yRad - 25))
+                    else:
+                        print('Error: player is not facing a valid direction.')
+                        running = False
+                self.animTimers['walk'] -= 1
+                
     
     def moveNorth(self):
         ## Ensures the player can actually move
@@ -492,16 +559,21 @@ while running:
     keys = pygame.key.get_pressed() # keys is a giant array of booleans
     if keys[pygame.K_d] and gameState == PLAYING:
         captain.moveEast()
+        captain.isMoving = True
     if keys[pygame.K_a] and gameState == PLAYING:
         captain.moveWest()
+        captain.isMoving = True
     if keys[pygame.K_w] and gameState == PLAYING:
         captain.moveNorth()
+        captain.isMoving = True
     if keys[pygame.K_s] and gameState == PLAYING:
         captain.moveSouth()
+        captain.isMoving = True
     ## Don't use elifs, or else diagonal mvmt won't be possible
 
     # Idle animation
     if not keys[pygame.K_w] and not keys[pygame.K_a] and not keys[pygame.K_s] and not keys[pygame.K_d]:
+        captain.isMoving = False
         if captain.animTimers['idle'] <= 0:
             captain.animTimers['idle'] = 60
         else:
