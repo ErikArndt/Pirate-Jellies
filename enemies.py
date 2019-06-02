@@ -49,7 +49,7 @@ class Jelly(Enemy):
         self.state = FREE
         self.damage = 1
         self.health = 3
-        self.iFrames = 20
+        self.iFrames = 30
         self.animTimers = {
             'hurt': 0,
             'die': 100

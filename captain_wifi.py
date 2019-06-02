@@ -89,8 +89,7 @@ maplength = maps.mapSizes[level][0]
 mapheight = maps.mapSizes[level][1]
 currentMap = pygame.Surface((maplength, mapheight))
 
-camXpos = -300 # these should always be negative
-camYpos = -900
+camXpos, camYpos = maps.camStartpoints[level]
 camFollowRect = (200, 200, winlength - 400, winheight - 400)
 
 class Particle:
@@ -305,8 +304,9 @@ class player:
             if isinstance(o, maps.Wifi):
                 if math.sqrt((self.x-o.x)**2 + (self.y-o.y)**2) <= o.radius:
                     self.connected = True
+                    break
                 else:
-                    self.connected = False            
+                    self.connected = False
 
     def moveEast(self):
         if self.state != FREE:
@@ -329,6 +329,7 @@ class player:
             if isinstance(o, maps.Wifi):        
                 if math.sqrt((self.x-o.x)**2 + (self.y-o.y)**2) <= o.radius:
                     self.connected = True
+                    break
                 else:
                     self.connected = False
                 
@@ -353,6 +354,7 @@ class player:
             if isinstance(o, maps.Wifi):
                 if math.sqrt((self.x-o.x)**2 + (self.y-o.y)**2) <= o.radius:
                     self.connected = True
+                    break
                 else:
                     self.connected = False
                 
@@ -378,6 +380,7 @@ class player:
             if isinstance(o, maps.Wifi):
                 if math.sqrt((self.x-o.x)**2 + (self.y-o.y)**2) <= o.radius:
                     self.connected = True
+                    break
                 else:
                     self.connected = False
                 
@@ -440,7 +443,7 @@ def drawParticles():
 ## Main loop
 gameState = MENU
 
-captain = player(maps.startpoints[1])
+captain = player(maps.startpoints[level])
 
 walls = maps.loadWalls(level)
 bg = maps.loadBG(level)
@@ -534,7 +537,7 @@ while running:
             captain.draw()    
             
         for o in objList:
-            o.draw(currentMap)
+            o.draw(currentMap, debug)
         
         drawParticles()  
         
