@@ -262,18 +262,30 @@ class player:
             else:
                 pygame.draw.rect(currentMap, green, (self.x - self.xRad, self.y - self.yRad, \
                                               self.xRad*2, self.yRad*2))
-        ## For now I'm just using the basic idle sprites
-        if self.facing == NORTH:
-            currentMap.blit(idles[0], (self.x - self.xRad, self.y - self.yRad - 25))
-        elif self.facing == EAST:
-            currentMap.blit(idles[2], (self.x - self.xRad, self.y - self.yRad - 25))
-        elif self.facing == SOUTH:
-            currentMap.blit(idles[4], (self.x - self.xRad, self.y - self.yRad - 25))
-        elif self.facing == WEST:
-            currentMap.blit(idles[6], (self.x - self.xRad, self.y - self.yRad - 25))
+        if self.animTimers['idle'] <30:
+            if self.facing == NORTH:
+                currentMap.blit(idles[1], (self.x - self.xRad, self.y - self.yRad - 25))
+            elif self.facing == EAST:
+                currentMap.blit(idles[3], (self.x - self.xRad, self.y - self.yRad - 25))
+            elif self.facing == SOUTH:
+                currentMap.blit(idles[5], (self.x - self.xRad, self.y - self.yRad - 25))
+            elif self.facing == WEST:
+                currentMap.blit(idles[7], (self.x - self.xRad, self.y - self.yRad - 25))
+            else:
+                print('Error: player is not facing a valid direction.')
+                running = False
         else:
-            print('Error: player is not facing a valid direction.')
-            running = False
+            if self.facing == NORTH:
+                currentMap.blit(idles[0], (self.x - self.xRad, self.y - self.yRad - 25))
+            elif self.facing == EAST:
+                currentMap.blit(idles[2], (self.x - self.xRad, self.y - self.yRad - 25))
+            elif self.facing == SOUTH:
+                currentMap.blit(idles[4], (self.x - self.xRad, self.y - self.yRad - 25))
+            elif self.facing == WEST:
+                currentMap.blit(idles[6], (self.x - self.xRad, self.y - self.yRad - 25))
+            else:
+                print('Error: player is not facing a valid direction.')
+                running = False
     
     def moveNorth(self):
         ## Ensures the player can actually move
@@ -480,6 +492,13 @@ while running:
     if keys[pygame.K_s] and gameState == PLAYING:
         captain.moveSouth()
     ## Don't use elifs, or else diagonal mvmt won't be possible
+
+    # Idle animation
+    if not keys[pygame.K_w] and not keys[pygame.K_a] and not keys[pygame.K_s] and not keys[pygame.K_d]:
+        if captain.animTimers['idle'] <= 0:
+            captain.animTimers['idle'] = 60
+        else:
+            captain.animTimers['idle'] -= 1
     
     if gameState == PLAYING:
         currentMap.blit(bg, (0, 0)) # draws the level
