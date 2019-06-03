@@ -20,7 +20,9 @@ class Wifi:
         self.x = x
         self.y = y
         self.radius = radius
-        self.imageRad = 25
+        self.imageXRad = 40
+        self.imageYRad = 50
+        
     
     def draw(self, m, debug=False):
         '''
@@ -28,10 +30,8 @@ class Wifi:
         '''
         pygame.draw.ellipse(m, pygame.Color('blue'), (self.x-self.radius, self.y-self.radius, \
                                         self.radius*2, self.radius*2), 5)
-        ## Placeholder for phone image
-        if debug:
-            pygame.draw.rect(m, pygame.Color('blue'), (self.x-self.imageRad, self.y-self.imageRad, \
-                                                       self.imageRad*2, self.imageRad*2))
+        p = pygame.transform.scale(phone, (self.imageXRad*2, self.imageYRad*2))
+        m.blit(p, (self.x-self.imageXRad, self.y-self.imageYRad))
 
 def loadBG(levelID):
     '''
@@ -177,7 +177,8 @@ def loadEnemies(levelID):
     
     if levelID == 1: # level 1 enemies
         ## Jellies
-        elist.extend([enemies.Jelly(700, 300)])
+        elist.extend([enemies.Jelly(700, 300),
+                      enemies.PirateJelly(700, 200, elist)])
     elif levelID == 2: # level 2 enemies
         elist.extend([enemies.Jelly(900, 100),
                       enemies.Jelly(1350, 200)])
@@ -212,3 +213,5 @@ def loadSprites():
     grassTile = pygame.image.load('images/grass.png').convert_alpha()
     global concreteTile
     concreteTile = pygame.image.load('images/concrete.png').convert_alpha()
+    global phone
+    phone = pygame.image.load('images/phone.png').convert_alpha()
