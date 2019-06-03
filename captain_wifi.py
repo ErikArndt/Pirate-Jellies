@@ -31,6 +31,7 @@ WEST = 3
 PLAYING = 0
 MENU = 1
 PAUSED = 2
+GAMEOVER = 3
 
 ## Player states
 FREE = 0 # walking or idle
@@ -91,6 +92,9 @@ healthBattery = [pygame.image.load('images/battery0.png').convert_alpha(),
                  pygame.image.load('images/battery9.png').convert_alpha(),
                  pygame.image.load('images/battery10.png').convert_alpha()]
 
+deadCap = pygame.image.load('images/dead_captain.png').convert_alpha()
+deadCap = pygame.transform.scale(deadCap, (200, 200))
+
 for i in range(len(idles)):
     idles[i] = pygame.transform.scale(idles[i], (50, 125))
 for i in range(len(punchPoses)):
@@ -110,10 +114,8 @@ beams = [pygame.image.load('images/beam1.png').convert_alpha(), \
          pygame.image.load('images/beam2.png').convert_alpha()]
 beams[0] = pygame.transform.scale(beams[0], (80, 200))
 beams[1] = pygame.transform.scale(beams[1], (80, 400))
-beams.extend([pygame.transform.scale(beams[0], (20, 200)),
-              pygame.transform.scale(beams[1], (20, 400))])
 ## 80 was arrived at through trial and error.
-## If you change it here, change beamParticle.width as well
+## If you change it here, change it in beam.draw() as well
 
 enemies.loadSprites()
 maps.loadSprites()
@@ -206,7 +208,6 @@ class BeamParticle(Particle):
         mouseX = pygame.mouse.get_pos()[0] - camXpos
         mouseY = pygame.mouse.get_pos()[1] - camYpos
         self.length = 200
-        self.width = 40
         self.angle = functions.angleTo(self.x1, self.y1, mouseX, mouseY)        
         self.duration = 20
         self.colour = red
@@ -227,30 +228,23 @@ class BeamParticle(Particle):
         ## debug Hitline:
         if debug:
             pygame.draw.line(currentMap, self.colour, (self.x1, self.y1), (self.x2, self.y2), 10)
-        
-        if self.duration >= 10:
-            self.width = 10
-            b = pygame.transform.rotate(beams[self.powered + 2], -1*(self.angle - 90))
-        else: 
-            self.width = 40
-            b = pygame.transform.rotate(beams[self.powered], -1*(self.angle - 90))                        
-        
+        b = pygame.transform.rotate(beams[self.powered], -1*(self.angle - 90))
         if self.angle >= 270: # NE
             angle = -1*self.angle
-            beamX = self.x1 - self.width * math.sin(math.radians(angle))
-            beamY = self.y2 - self.width * math.cos(math.radians(angle))
+            beamX = self.x1 - 40 * math.sin(math.radians(angle))
+            beamY = self.y2 - 40 * math.cos(math.radians(angle))
         elif self.angle >= 180: # NW
             angle = self.angle - 180
-            beamX = self.x2 - self.width * math.sin(math.radians(angle))
-            beamY = self.y2 - self.width * math.cos(math.radians(angle))
+            beamX = self.x2 - 40 * math.sin(math.radians(angle))
+            beamY = self.y2 - 40 * math.cos(math.radians(angle))
         elif self.angle >= 90: # SW
             angle = 180 - self.angle
-            beamX = self.x2 - self.width * math.sin(math.radians(angle))
-            beamY = self.y1 - self.width * math.cos(math.radians(angle))
+            beamX = self.x2 - 40 * math.sin(math.radians(angle))
+            beamY = self.y1 - 40 * math.cos(math.radians(angle))
         else: ## SE
             angle = self.angle
-            beamX = self.x1 - self.width * math.sin(math.radians(angle))
-            beamY = self.y1 - self.width * math.cos(math.radians(angle))
+            beamX = self.x1 - 40 * math.sin(math.radians(angle))
+            beamY = self.y1 - 40 * math.cos(math.radians(angle))
         currentMap.blit(b, (beamX, beamY))
 
 
@@ -540,7 +534,8 @@ class player:
     def hurt(self, damage):
         self.health -= damage
         if self.health <= 0:
-            print('oops you deaded yourself')
+            global gameState
+            gameState = GAMEOVER
         else:
             self.animTimers['hurt'] = self.iFrames
     
@@ -566,11 +561,8 @@ def drawParticles():
         else:
             p.duration -= 1
             p.draw()
-            if isinstance(p, PunchParticle):
+            if isinstance(p, PunchParticle) or isinstance(p, BeamParticle):
                 p.checkDamage(enemyList)
-            elif isinstance(p, BeamParticle):
-                if p.duration < 10:
-                    p.checkDamage(enemyList)
         i += 1
 
 def reloadLevel():
@@ -629,6 +621,13 @@ while running:
                 mpos = pygame.mouse.get_pos()
                 for b in menu.activeButtons:
                     b.checkClick(mpos)
+            elif gameState == GAMEOVER:
+                mpos = pygame.mouse.get_pos()
+                if mpos[0] >= 310 and mpos[0] <= 490 and mpos[1] >= 465 and mpos[1] <= 500:
+                    level = 1
+                    captain.health = 10
+                    reloadLevel()
+                    gameState = PLAYING
         
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
             if gameState == PLAYING and captain.state == FREE:
@@ -685,7 +684,7 @@ while running:
                         if collision.rects((captain.x - captain.xRad, captain.y - captain.yRad,\
                                            captain.xRad*2, captain.yRad*2), (e.x - e.xRad,\
                                            e.y - e.yRad, e.xRad*2, e.yRad*2)):
-                            captain.hurt(1)
+                            captain.hurt(e.damage)
                 e.draw(currentMap, debug)
         
         ## It looks a bit better if the player can't move or turn while punching
@@ -715,7 +714,14 @@ while running:
     
     elif gameState == MENU:
         menu.draw(win)
-    
+    elif gameState == GAMEOVER:
+        win.fill(black)
+        gameOverTxt = menu.scribbleL.render('Game Over', False, red)
+        restartTxt = menu.basicL.render('Restart', False, white)
+        win.blit(gameOverTxt, (150, 50))
+        win.blit(restartTxt, (310, 465))
+        win.blit(deadCap, (300, 200))
+        
     pygame.display.update() # put this at the end of your main loop
 
 pygame.quit() # put this at the end of all your pygame files
