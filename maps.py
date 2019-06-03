@@ -77,7 +77,19 @@ def loadBG(levelID):
         s.blit(r, (800, 850))
         s.blit(r, (550, 700))
     elif levelID == 2: # level 2 bg
-        s.fill(pygame.Color('white'))
+        s.fill(pygame.Color('white')) ## Keeping this here for now
+        ## Bushes
+        b = pygame.transform.scale(bush, (50, 50))
+        for j in range(6): # y values from 250 to 550
+            s.blit(b, (800, 250 + j*50))
+            s.blit(b, (850, 250 + j*50))
+        ## Trash Cans
+        tc = pygame.transform.scale(trash_can, (100, 100))
+        s.blit(tc, (400, 100))
+        s.blit(tc, (400, 200))
+        ## Trees
+        t = pygame.transform.scale(tree, (200, 300))
+        s.blit(t, (1200, 500))
     elif levelID == 3: # level 3 bg
         s.fill(pygame.Color('white'))
     elif levelID == 4: # level 4 bg
@@ -193,8 +205,11 @@ def loadEnemies(levelID):
 ## **************** Sprites *************
 ## Variable declarations
 house = 0;
+tree = 0;
 rock = 0;
+bush = 0;
 crate = 0;
+trash_can = 0;
 grassTile = 0;
 concreteTile = 0;
 
@@ -205,10 +220,16 @@ def loadSprites():
     ## Need to be declared global, because they're not inside an array
     global house
     house = pygame.image.load('images/house.png').convert_alpha()
+    global tree
+    tree = pygame.image.load('images/tree.png').convert_alpha()
     global rock
     rock = pygame.image.load('images/rock.png').convert_alpha()
+    global bush
+    bush = pygame.image.load('images/bush.png').convert_alpha()
     global crate
     crate = pygame.image.load('images/crate.png').convert_alpha()
+    global trash_can
+    trash_can = pygame.image.load('images/trash_can.png').convert_alpha()
     global grassTile
     grassTile = pygame.image.load('images/grass.png').convert_alpha()
     global concreteTile
