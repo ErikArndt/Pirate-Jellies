@@ -127,7 +127,7 @@ menu.loadSprites((winlength, winheight))
 
 ## ****************************************
 
-level = 4 # This will be mutated
+level = 1 # This will be mutated
 maplength = maps.mapSizes[level][0]
 mapheight = maps.mapSizes[level][1]
 currentMap = pygame.Surface((maplength, mapheight))
