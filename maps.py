@@ -78,18 +78,43 @@ def loadBG(levelID):
         s.blit(r, (550, 700))
     elif levelID == 2: # level 2 bg
         s.fill(pygame.Color('white')) ## Keeping this here for now
+        ## Grass
+        g = pygame.transform.scale(grassTile, (100, 100))
+        for i in range(15): # x values 0 to 1500
+            for j in range(13): # y values 0 to 1300
+                s.blit(g, (i*100, j*100))         
         ## Bushes
         b = pygame.transform.scale(bush, (50, 50))
         for j in range(6): # y values from 250 to 550
             s.blit(b, (800, 250 + j*50))
             s.blit(b, (850, 250 + j*50))
+        for i in range(14): # x values from 500 to 1200
+            s.blit(b, (i*50 + 500, 0))
+            s.blit(b, (i*50 + 500, 1200))
+        ## Crates
+        c = pygame.transform.scale(crate, (100, 100))
+        for i in range(5): # x values from 0 to 500
+            s.blit(c, (i*100, 0))
+        for j in range(3): # y values from 0 to 300
+            s.blit(c, (1200, j*100))
         ## Trash Cans
         tc = pygame.transform.scale(trash_can, (100, 100))
         s.blit(tc, (400, 100))
         s.blit(tc, (400, 200))
-        ## Trees
+        ## Rocks and Trees
+        r = pygame.transform.scale(rock, (50, 50))
         t = pygame.transform.scale(tree, (200, 300))
-        s.blit(t, (1200, 500))
+        for j in range(4): # y values from 300 to 1500
+            s.blit(t, (0, 300*j + 300))
+        for j in range(3): # y values from 500 to 1400
+            s.blit(t, (1200, 300*j + 500))
+            s.blit(r, (1200, 300*j + 700))
+        ## Houses
+        h = pygame.transform.scale(house, (300, 300))
+        for j in range(3): # y values from 500 to 1400
+            s.blit(h, (200, j*300 + 500))
+        for j in range(5): # y values from 0 to 1500
+            s.blit(h, (1400, j*300))
     elif levelID == 3: # level 3 bg
         s.fill(pygame.Color('white'))
     elif levelID == 4: # level 4 bg
