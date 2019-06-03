@@ -157,8 +157,8 @@ def loadObjects(levelID):
     elif levelID == 2: # level 2 objects
         objects.extend([Wifi(850, 1000, 200)])
     elif levelID == 3: # level 3 objects
-        objects.extend([Wifi(150, 1000, 300),
-                        Wifi(950, 1000, 300)])
+        objects.extend([Wifi(200, 1000, 300),
+                        Wifi(1000, 1000, 300)])
     elif levelID == 4: # level 4 objects
         objects.extend([Wifi(600, 200, 200),
                         Wifi(100, 300, 150),
@@ -182,10 +182,10 @@ def loadEnemies(levelID):
         elist.extend([enemies.Jelly(900, 100),
                       enemies.Jelly(1350, 200)])
     elif levelID == 3: # level 3 enemies
-        elist.extend([enemies.Jelly(50, 650),
-                      enemies.Jelly(1050, 600),
-                      enemies.Jelly(300, 400),
-                      enemies.Jelly(800, 400)])
+        elist.extend([enemies.Jelly(100, 650),
+                      enemies.Jelly(1100, 600),
+                      enemies.Jelly(350, 400),
+                      enemies.Jelly(850, 400)])
     elif levelID == 4: # level 4 enemies
         elist.extend([enemies.PirateJelly(600, 200, elist)])
     return elist
