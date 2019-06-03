@@ -77,7 +77,19 @@ walkPoses = [pygame.image.load('images/walkU1.png').convert_alpha(),
          pygame.image.load('images/walkR1.png').convert_alpha(),
          pygame.image.load('images/walkD1.png').convert_alpha(),
          pygame.image.load('images/walkD2.png').convert_alpha(),
-         pygame.image.load('images/walkL1.png').convert_alpha(),]
+         pygame.image.load('images/walkL1.png').convert_alpha()]
+
+healthBattery = [pygame.image.load('images/battery0.png').convert_alpha(),
+                 pygame.image.load('images/battery1.png').convert_alpha(),
+                 pygame.image.load('images/battery2.png').convert_alpha(),
+                 pygame.image.load('images/battery3.png').convert_alpha(),
+                 pygame.image.load('images/battery4.png').convert_alpha(),
+                 pygame.image.load('images/battery5.png').convert_alpha(),
+                 pygame.image.load('images/battery6.png').convert_alpha(),
+                 pygame.image.load('images/battery7.png').convert_alpha(),
+                 pygame.image.load('images/battery8.png').convert_alpha(),
+                 pygame.image.load('images/battery9.png').convert_alpha(),
+                 pygame.image.load('images/battery10.png').convert_alpha()]
 
 for i in range(len(idles)):
     idles[i] = pygame.transform.scale(idles[i], (50, 125))
@@ -85,6 +97,8 @@ for i in range(len(punchPoses)):
     punchPoses[i] = pygame.transform.scale(punchPoses[i], (50, 125))
 for i in range(len(walkPoses)):
     walkPoses[i] = pygame.transform.scale(walkPoses[i], (50, 125))
+for i in range(len(healthBattery)):
+    healthBattery[i] = pygame.transform.scale(healthBattery[i], (200, 100))
 
 punches = [pygame.image.load('images/punch1.png').convert_alpha(), \
            pygame.image.load('images/punch2.png').convert_alpha()]
@@ -255,7 +269,7 @@ class player:
         self.isMoving = False
         self.particle = 0 # will point to a punch/beam particle
         
-        self.health = 4
+        self.health = 10
         self.state = FREE
         self.iFrames = 60
         self.animTimers = {
@@ -672,6 +686,8 @@ while running:
         drawParticles()  
         
         win.blit(currentMap, (camXpos, camYpos))
+
+        win.blit(healthBattery[captain.health], (0, 0))
         
         ## Camera follow rect
         if debug:
