@@ -2,6 +2,7 @@ import math
 import pygame
 import collision
 import functions
+import random
 
 FREE = 0
 HURT = 1
@@ -187,7 +188,7 @@ class Jelly(Enemy):
         self.state = DIE
 
 class PirateJelly(Enemy):
-    def __init__(self, startingX, startingY):
+    def __init__(self, startingX, startingY, enemyList):
         '''
         Enemies must be initialized with starting x and y coordinates.
         '''
@@ -196,6 +197,7 @@ class PirateJelly(Enemy):
         self.xRad = 100
         self.yRad = 75
         self.angle = 0
+        self.eList = enemyList
         
         self.speedCap = 2
         self.accel = 0.1
@@ -206,8 +208,8 @@ class PirateJelly(Enemy):
         
         self.state = FREE
         self.damage = 2
-        self.health = 30
-        self.iFrames = 10
+        self.health = 50
+        self.iFrames = 20
         self.animTimers = {
             'hurt': 0,
             'die': 100
@@ -333,6 +335,8 @@ class PirateJelly(Enemy):
         if self.health <= 0:
             self.die()
         else:
+            if self.health in [1,2,3,4,5,7,9,11,15,20,25,30]:
+                self.eList.append(Jelly(random.randint(self.x-self.xRad, self.x+self.xRad), random.randint(self.y-self.yRad, self.y+self.yRad)))
             self.state = HURT
             self.animTimers['hurt'] = self.iFrames
         return
