@@ -177,8 +177,7 @@ def loadEnemies(levelID):
     
     if levelID == 1: # level 1 enemies
         ## Jellies
-        elist.extend([enemies.Jelly(700, 300),
-                      enemies.PirateJelly(700, 200, elist)])
+        elist.extend([enemies.Jelly(700, 300)])
     elif levelID == 2: # level 2 enemies
         elist.extend([enemies.Jelly(900, 100),
                       enemies.Jelly(1350, 200)])
