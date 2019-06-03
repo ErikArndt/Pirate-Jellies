@@ -375,7 +375,10 @@ class player:
                     else:
                         print('Error: player is not facing a valid direction.')
                         running = False
-                self.animTimers['walk'] -= 1
+                
+                if gameState != PAUSED:
+                    self.animTimers['walk'] -= 1
+        
         elif self.state == PUNCH:
             if self.particle.duration >= 6:
                 if self.facing == NORTH:
@@ -573,13 +576,14 @@ def drawParticles():
             activeParticles.pop(i)
             i -= 1
         else:
-            p.duration -= 1
             p.draw()
-            if isinstance(p, PunchParticle):
-                p.checkDamage(enemyList)
-            elif isinstance(p, BeamParticle):
-                if p.duration < 10:
+            if gameState == PLAYING:
+                p.duration -= 1
+                if isinstance(p, PunchParticle):
                     p.checkDamage(enemyList)
+                elif isinstance(p, BeamParticle):
+                    if p.duration < 10:
+                        p.checkDamage(enemyList)
         i += 1
 
 def reloadLevel():
@@ -624,10 +628,10 @@ while running:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE: # what happens when space is pressed
-                if gameState == MENU: # Remove this once menu button works
+                if gameState == PLAYING:
+                    gameState = PAUSED
+                elif gameState == PAUSED:
                     gameState = PLAYING
-                else:
-                    print('Space is unmapped ... ya dingus')
                 
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1): # left mouse button
             if gameState == PLAYING and captain.state == FREE:
@@ -672,14 +676,6 @@ while running:
                         2*captain.xRad, 2*captain.yRad), maps.nextLevelTriggers[level]):
         level += 1
         reloadLevel()
-
-    # Idle animation
-    if not keys[pygame.K_w] and not keys[pygame.K_a] and not keys[pygame.K_s] and not keys[pygame.K_d]:
-        captain.isMoving = False
-        if captain.animTimers['idle'] <= 0:
-            captain.animTimers['idle'] = 60
-        else:
-            captain.animTimers['idle'] -= 1
     
     if gameState == PLAYING:
         currentMap.blit(bg, (0, 0)) # draws the level
@@ -704,6 +700,14 @@ while running:
                             captain.hurt(1)
                 e.draw(currentMap, debug)
         
+        # Idle animation
+        if not keys[pygame.K_w] and not keys[pygame.K_a] and not keys[pygame.K_s] and not keys[pygame.K_d]:
+            captain.isMoving = False
+            if captain.animTimers['idle'] <= 0:
+                captain.animTimers['idle'] = 60
+            else:
+                captain.animTimers['idle'] -= 1        
+        
         ## It looks a bit better if the player can't move or turn while punching
         if captain.state == PUNCH or captain.state == BEAM:
             captain.checkFacing()
@@ -716,9 +720,20 @@ while running:
         drawParticles()
         
         win.blit(currentMap, (camXpos, camYpos))
-
+        
+        ## UI Elements
+        
         pygame.draw.rect(win, black, (10, 20, 173, 63))
         win.blit(healthBattery[captain.health], (0, 0))
+
+        ## Camera follow rect
+        if debug:
+            pygame.draw.rect(win, red, camFollowRect, 5)
+        
+        ## FPS display
+        if debug:
+            fpsText = font1.render(str(round(gameClock.get_fps())) + " FPS", False, black, white)
+            win.blit(fpsText, (winlength - fpsText.get_size()[0], 0))        
 
         # win detection
         for e in enemyList:
@@ -731,7 +746,32 @@ while running:
             gameWinTimer -= 1
             if gameWinTimer == 1:
                 gameState = WIN
+    
+    elif gameState == PAUSED:
+        currentMap.blit(bg, (0, 0)) # draws the level
+        ## This background is the main source of lag    
         
+        if debug:
+            for i in range(len(walls)):
+                walls[i].draw(currentMap)    
+                
+        for o in objList:
+            o.draw(currentMap, debug)  
+        
+        for e in enemyList:
+            e.draw(currentMap, debug)
+        
+        captain.draw()    
+        
+        drawParticles()
+        
+        win.blit(currentMap, (camXpos, camYpos))
+        
+        ## UI Elements
+        
+        pygame.draw.rect(win, black, (10, 20, 173, 63))
+        win.blit(healthBattery[captain.health], (0, 0))
+
         ## Camera follow rect
         if debug:
             pygame.draw.rect(win, red, camFollowRect, 5)
@@ -739,7 +779,11 @@ while running:
         ## FPS display
         if debug:
             fpsText = font1.render(str(round(gameClock.get_fps())) + " FPS", False, black, white)
-            win.blit(fpsText, (winlength - fpsText.get_size()[0], 0))
+            win.blit(fpsText, (winlength - fpsText.get_size()[0], 0))            
+
+        pauseText = menu.basicL.render('PAUSED', False, pygame.Color('white'), \
+                                       pygame.Color('black'))
+        win.blit(pauseText, (400 - pauseText.get_size()[0]/2, 250))        
     
     elif gameState == MENU:
         menu.draw(win)
