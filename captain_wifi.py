@@ -5,6 +5,7 @@ import maps
 import enemies
 import collision
 import menu
+import textwrap
 
 pygame.mixer.pre_init(22050, -16, 2, 2048)
 pygame.mixer.init()
@@ -31,6 +32,8 @@ WEST = 3
 PLAYING = 0
 MENU = 1
 PAUSED = 2
+GAMEOVER = 3
+WIN = 4
 
 ## Player states
 FREE = 0 # walking or idle
@@ -91,6 +94,9 @@ healthBattery = [pygame.image.load('images/battery0.png').convert_alpha(),
                  pygame.image.load('images/battery9.png').convert_alpha(),
                  pygame.image.load('images/battery10.png').convert_alpha()]
 
+deadCap = pygame.image.load('images/dead_captain.png').convert_alpha()
+deadCap = pygame.transform.scale(deadCap, (200, 200))
+
 for i in range(len(idles)):
     idles[i] = pygame.transform.scale(idles[i], (50, 125))
 for i in range(len(punchPoses)):
@@ -128,6 +134,8 @@ currentMap = pygame.Surface((maplength, mapheight))
 
 camXpos, camYpos = maps.camStartpoints[level]
 camFollowRect = (200, 200, winlength - 400, winheight - 400)
+
+gameWinTimer = 0
 
 class Particle:
     ## This is a superclass. Don't actually use it. Use it's subclasses.
@@ -540,7 +548,8 @@ class player:
     def hurt(self, damage):
         self.health -= damage
         if self.health <= 0:
-            print('oops you deaded yourself')
+            global gameState
+            gameState = GAMEOVER
         else:
             self.animTimers['hurt'] = self.iFrames
     
@@ -629,6 +638,13 @@ while running:
                 mpos = pygame.mouse.get_pos()
                 for b in menu.activeButtons:
                     b.checkClick(mpos)
+            elif gameState == GAMEOVER:
+                mpos = pygame.mouse.get_pos()
+                if mpos[0] >= 310 and mpos[0] <= 490 and mpos[1] >= 465 and mpos[1] <= 500:
+                    level = 1
+                    captain.health = 10
+                    reloadLevel()
+                    gameState = PLAYING
         
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
             if gameState == PLAYING and captain.state == FREE:
@@ -703,6 +719,18 @@ while running:
 
         pygame.draw.rect(win, black, (10, 20, 173, 63))
         win.blit(healthBattery[captain.health], (0, 0))
+
+        # win detection
+        for e in enemyList:
+            if isinstance(e, enemies.PirateJelly):
+                if e.state == 2 and level == 4:
+                    if gameWinTimer == 0:
+                        gameWinTimer = 120
+        
+        if gameWinTimer > 0:
+            gameWinTimer -= 1
+            if gameWinTimer == 1:
+                gameState = WIN
         
         ## Camera follow rect
         if debug:
@@ -715,6 +743,26 @@ while running:
     
     elif gameState == MENU:
         menu.draw(win)
+    elif gameState == GAMEOVER:
+        win.fill(black)
+        gameOverTxt = menu.scribbleL.render('Game Over', False, red)
+        restartTxt = menu.basicL.render('Restart', False, white)
+        win.blit(gameOverTxt, (150, 50))
+        win.blit(restartTxt, (310, 465))
+        win.blit(deadCap, (300, 200))
+    elif gameState == WIN:
+        win.fill(white)
+        winTxt = menu.scribbleL.render('You win!', False, black)
+        winTxt2 = font1.render("That's all we have, sorry.", False, black)
+        winTxt3 = font1.render("Well, we do also have this dog", False, black)
+        winTxt4 = font1.render("His name is Byte", False, black)
+        winTxt5 = font1.render("He's a good boy", False, black)
+        win.blit(winTxt, (200, 50))
+        win.blit(winTxt2, (250, 200))
+        win.blit(winTxt3, (250, 250))
+        win.blit(menu.byte, (300, 300))
+        win.blit(winTxt4, (250, 475))
+        win.blit(winTxt5, (250, 525))
     
     pygame.display.update() # put this at the end of your main loop
 

@@ -95,12 +95,7 @@ class Jelly(Enemy):
                 self.animTimers['hurt'] -= 1
         
         elif self.state == DIE:
-            pygame.draw.rect(m, pygame.Color('yellow'), (self.x - self.xRad, self.y - self.yRad, \
-                                                         self.xRad*2, self.yRad*2))
-            pygame.draw.line(m, pygame.Color('red'), (self.x - self.xRad, self.y - self.yRad), \
-                             (self.x + self.xRad, self.y + self.yRad), 2)
-            pygame.draw.line(m, pygame.Color('red'), (self.x - self.xRad, self.y + self.yRad), \
-                             (self.x + self.xRad, self.y - self.yRad), 2)
+            m.blit(jellySprites[4], (self.x - self.xRad, self.y - self.yRad))
             ## Update the animations and/or state
             if self.animTimers['die'] <= 0:
                 ## remove the enemy from enemies ... somehow
@@ -254,12 +249,7 @@ class PirateJelly(Enemy):
                 self.animTimers['hurt'] -= 1
         
         elif self.state == DIE:
-            pygame.draw.rect(m, pygame.Color('yellow'), (self.x - self.xRad, self.y - self.yRad, \
-                                                         self.xRad*2, self.yRad*2))
-            pygame.draw.line(m, pygame.Color('red'), (self.x - self.xRad, self.y - self.yRad), \
-                             (self.x + self.xRad, self.y + self.yRad), 2)
-            pygame.draw.line(m, pygame.Color('red'), (self.x - self.xRad, self.y + self.yRad), \
-                             (self.x + self.xRad, self.y - self.yRad), 2)
+            m.blit(pirateSprites[4], (self.x - self.xRad, self.y - self.yRad))
             ## Update the animations and/or state
             if self.animTimers['die'] <= 0:
                 ## remove the enemy from enemies ... somehow
@@ -361,12 +351,15 @@ def loadSprites():
     jellySprites.extend([pygame.image.load('images/jellyU.png').convert_alpha(),
                          pygame.image.load('images/jellyR.png').convert_alpha(),
                          pygame.image.load('images/jellyD.png').convert_alpha(),
-                         pygame.image.load('images/jellyL.png').convert_alpha()])
+                         pygame.image.load('images/jellyL.png').convert_alpha(),
+                         pygame.image.load('images/jellyDead.png').convert_alpha()])
     for i in range(len(jellySprites)):
         jellySprites[i] = pygame.transform.scale(jellySprites[i], (40, 40))
     pirateSprites.extend([pygame.image.load('images/pirate_jellyU.png').convert_alpha(),
                           pygame.image.load('images/pirate_jellyR.png').convert_alpha(),
                           pygame.image.load('images/pirate_jellyD.png').convert_alpha(),
-                          pygame.image.load('images/pirate_jellyL.png').convert_alpha()])
+                          pygame.image.load('images/pirate_jellyL.png').convert_alpha(),
+                          pygame.image.load('images/pirate_jellyDead.png')])
+
     for i in range(len(pirateSprites)):
         pirateSprites[i] = pygame.transform.scale(pirateSprites[i], (200, 150))
