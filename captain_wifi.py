@@ -564,9 +564,10 @@ def reloadLevel():
     '''
     Call after changing level
     '''
-    global walls, bg, enemyList, objList, camXpos, camYpos
+    global walls, bg, enemyList, objList, camXpos, camYpos, maplength, mapheight
     captain.x = maps.startpoints[level][0]
     captain.y = maps.startpoints[level][1]
+    maplength, mapheight = maps.mapSizes[level] 
     walls = maps.loadWalls(level)
     bg = maps.loadBG(level)
     enemyList = maps.loadEnemies(level)
