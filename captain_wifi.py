@@ -5,6 +5,7 @@ import maps
 import enemies
 import collision
 import menu
+import textwrap
 
 pygame.mixer.pre_init(22050, -16, 2, 2048)
 pygame.mixer.init()
@@ -32,6 +33,7 @@ PLAYING = 0
 MENU = 1
 PAUSED = 2
 GAMEOVER = 3
+WIN = 4
 
 ## Player states
 FREE = 0 # walking or idle
@@ -125,13 +127,15 @@ menu.loadSprites((winlength, winheight))
 
 ## ****************************************
 
-level = 1 # This will be mutated
+level = 4 # This will be mutated
 maplength = maps.mapSizes[level][0]
 mapheight = maps.mapSizes[level][1]
 currentMap = pygame.Surface((maplength, mapheight))
 
 camXpos, camYpos = maps.camStartpoints[level]
 camFollowRect = (200, 200, winlength - 400, winheight - 400)
+
+gameWinTimer = 0
 
 class Particle:
     ## This is a superclass. Don't actually use it. Use it's subclasses.
@@ -715,6 +719,18 @@ while running:
 
         pygame.draw.rect(win, black, (10, 20, 173, 63))
         win.blit(healthBattery[captain.health], (0, 0))
+
+        # win detection
+        for e in enemyList:
+            if isinstance(e, enemies.PirateJelly):
+                if e.state == 2 and level == 4:
+                    if gameWinTimer == 0:
+                        gameWinTimer = 120
+        
+        if gameWinTimer > 0:
+            gameWinTimer -= 1
+            if gameWinTimer == 1:
+                gameState = WIN
         
         ## Camera follow rect
         if debug:
@@ -734,6 +750,19 @@ while running:
         win.blit(gameOverTxt, (150, 50))
         win.blit(restartTxt, (310, 465))
         win.blit(deadCap, (300, 200))
+    elif gameState == WIN:
+        win.fill(white)
+        winTxt = menu.scribbleL.render('You win!', False, black)
+        winTxt2 = font1.render("That's all we have, sorry.", False, black)
+        winTxt3 = font1.render("Well, we do also have this dog", False, black)
+        winTxt4 = font1.render("His name is Byte", False, black)
+        winTxt5 = font1.render("He's a good boy", False, black)
+        win.blit(winTxt, (200, 50))
+        win.blit(winTxt2, (250, 200))
+        win.blit(winTxt3, (250, 250))
+        win.blit(menu.byte, (300, 300))
+        win.blit(winTxt4, (250, 475))
+        win.blit(winTxt5, (250, 525))
     
     pygame.display.update() # put this at the end of your main loop
 
