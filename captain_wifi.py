@@ -31,6 +31,7 @@ WEST = 3
 PLAYING = 0
 MENU = 1
 PAUSED = 2
+GAMEOVER = 3
 
 ## Player states
 FREE = 0 # walking or idle
@@ -90,6 +91,9 @@ healthBattery = [pygame.image.load('images/battery0.png').convert_alpha(),
                  pygame.image.load('images/battery8.png').convert_alpha(),
                  pygame.image.load('images/battery9.png').convert_alpha(),
                  pygame.image.load('images/battery10.png').convert_alpha()]
+
+deadCap = pygame.image.load('images/dead_captain.png').convert_alpha()
+deadCap = pygame.transform.scale(deadCap, (200, 200))
 
 for i in range(len(idles)):
     idles[i] = pygame.transform.scale(idles[i], (50, 125))
@@ -540,7 +544,8 @@ class player:
     def hurt(self, damage):
         self.health -= damage
         if self.health <= 0:
-            print('oops you deaded yourself')
+            global gameState
+            gameState = GAMEOVER
         else:
             self.animTimers['hurt'] = self.iFrames
     
@@ -629,6 +634,13 @@ while running:
                 mpos = pygame.mouse.get_pos()
                 for b in menu.activeButtons:
                     b.checkClick(mpos)
+            elif gameState == GAMEOVER:
+                mpos = pygame.mouse.get_pos()
+                if mpos[0] >= 310 and mpos[0] <= 490 and mpos[1] >= 465 and mpos[1] <= 500:
+                    level = 1
+                    captain.health = 10
+                    reloadLevel()
+                    gameState = PLAYING
         
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
             if gameState == PLAYING and captain.state == FREE:
@@ -715,6 +727,13 @@ while running:
     
     elif gameState == MENU:
         menu.draw(win)
+    elif gameState == GAMEOVER:
+        win.fill(black)
+        gameOverTxt = menu.scribbleL.render('Game Over', False, red)
+        restartTxt = menu.basicL.render('Restart', False, white)
+        win.blit(gameOverTxt, (150, 50))
+        win.blit(restartTxt, (310, 465))
+        win.blit(deadCap, (300, 200))
     
     pygame.display.update() # put this at the end of your main loop
 
