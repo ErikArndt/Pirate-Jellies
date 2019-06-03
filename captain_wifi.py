@@ -672,7 +672,10 @@ while running:
         if debug:
             for i in range(len(walls)):
                 walls[i].draw(currentMap)    
-         
+                
+        for o in objList:
+            o.draw(currentMap, debug)        
+        
         for e in enemyList:
             if isinstance(e, enemies.Jelly) or isinstance(e, enemies.PirateJelly):
                 if e.state == FREE:
@@ -690,9 +693,6 @@ while running:
             captain.checkFacing()
         if captain.animTimers['hurt'] > 0:
             captain.animTimers['hurt'] -= 1
-
-        for o in objList:
-            o.draw(currentMap, debug)
         
         if captain.animTimers['hurt']%4 < 2:
             captain.draw()    
@@ -701,6 +701,7 @@ while running:
         
         win.blit(currentMap, (camXpos, camYpos))
 
+        pygame.draw.rect(win, black, (10, 20, 173, 63))
         win.blit(healthBattery[captain.health], (0, 0))
         
         ## Camera follow rect

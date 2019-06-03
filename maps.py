@@ -187,7 +187,8 @@ def loadEnemies(levelID):
                       enemies.Jelly(1050, 600),
                       enemies.Jelly(300, 400),
                       enemies.Jelly(800, 400)])
-    
+    elif levelID == 4: # level 4 enemies
+        elist.extend([enemies.PirateJelly(600, 200, elist)])
     return elist
 
 ## **************** Sprites *************
