@@ -92,7 +92,7 @@ healthBattery = [pygame.image.load('images/battery0.png').convert_alpha(),
                  pygame.image.load('images/battery9.png').convert_alpha(),
                  pygame.image.load('images/battery10.png').convert_alpha()]
 
-deadCap = pygame.image.load('images/its_ya_boi.png').convert_alpha()
+deadCap = pygame.image.load('images/dead_captain.png').convert_alpha()
 deadCap = pygame.transform.scale(deadCap, (200, 200))
 
 for i in range(len(idles)):
