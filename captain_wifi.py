@@ -567,12 +567,12 @@ def reloadLevel():
     global walls, bg, enemyList, objList, camXpos, camYpos, maplength, mapheight
     captain.x = maps.startpoints[level][0]
     captain.y = maps.startpoints[level][1]
-    maplength, mapheight = maps.mapSizes[level] 
     walls = maps.loadWalls(level)
     bg = maps.loadBG(level)
     enemyList = maps.loadEnemies(level)
     objList = maps.loadObjects(level)
-    camXpos, camYpos = maps.camStartpoints[level]    
+    camXpos, camYpos = maps.camStartpoints[level]
+    maplength, mapheight = maps.mapSizes[level]
 
 ## Main loop
 gameState = MENU
@@ -661,7 +661,7 @@ while running:
                 walls[i].draw(currentMap)    
          
         for e in enemyList:
-            if isinstance(e, enemies.Jelly):
+            if isinstance(e, enemies.Jelly) or isinstance(e, enemies.PirateJelly):
                 if e.state == FREE:
                     e.moveToward(captain, walls)
                     # Checks if a jelly hit the player
@@ -677,14 +677,14 @@ while running:
             captain.checkFacing()
         if captain.animTimers['hurt'] > 0:
             captain.animTimers['hurt'] -= 1
-        
-        if captain.animTimers['hurt']%4 < 2:
-            captain.draw()    
-            
+
         for o in objList:
             o.draw(currentMap, debug)
         
-        drawParticles()  
+        if captain.animTimers['hurt']%4 < 2:
+            captain.draw()    
+        
+        drawParticles()
         
         win.blit(currentMap, (camXpos, camYpos))
 
