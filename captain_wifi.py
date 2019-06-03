@@ -110,8 +110,10 @@ beams = [pygame.image.load('images/beam1.png').convert_alpha(), \
          pygame.image.load('images/beam2.png').convert_alpha()]
 beams[0] = pygame.transform.scale(beams[0], (80, 200))
 beams[1] = pygame.transform.scale(beams[1], (80, 400))
+beams.extend([pygame.transform.scale(beams[0], (20, 200)),
+              pygame.transform.scale(beams[1], (20, 400))])
 ## 80 was arrived at through trial and error.
-## If you change it here, change it in beam.draw() as well
+## If you change it here, change beamParticle.width as well
 
 enemies.loadSprites()
 maps.loadSprites()
@@ -204,6 +206,7 @@ class BeamParticle(Particle):
         mouseX = pygame.mouse.get_pos()[0] - camXpos
         mouseY = pygame.mouse.get_pos()[1] - camYpos
         self.length = 200
+        self.width = 40
         self.angle = functions.angleTo(self.x1, self.y1, mouseX, mouseY)        
         self.duration = 20
         self.colour = red
@@ -224,23 +227,30 @@ class BeamParticle(Particle):
         ## debug Hitline:
         if debug:
             pygame.draw.line(currentMap, self.colour, (self.x1, self.y1), (self.x2, self.y2), 10)
-        b = pygame.transform.rotate(beams[self.powered], -1*(self.angle - 90))
+        
+        if self.duration >= 10:
+            self.width = 10
+            b = pygame.transform.rotate(beams[self.powered + 2], -1*(self.angle - 90))
+        else: 
+            self.width = 40
+            b = pygame.transform.rotate(beams[self.powered], -1*(self.angle - 90))                        
+        
         if self.angle >= 270: # NE
             angle = -1*self.angle
-            beamX = self.x1 - 40 * math.sin(math.radians(angle))
-            beamY = self.y2 - 40 * math.cos(math.radians(angle))
+            beamX = self.x1 - self.width * math.sin(math.radians(angle))
+            beamY = self.y2 - self.width * math.cos(math.radians(angle))
         elif self.angle >= 180: # NW
             angle = self.angle - 180
-            beamX = self.x2 - 40 * math.sin(math.radians(angle))
-            beamY = self.y2 - 40 * math.cos(math.radians(angle))
+            beamX = self.x2 - self.width * math.sin(math.radians(angle))
+            beamY = self.y2 - self.width * math.cos(math.radians(angle))
         elif self.angle >= 90: # SW
             angle = 180 - self.angle
-            beamX = self.x2 - 40 * math.sin(math.radians(angle))
-            beamY = self.y1 - 40 * math.cos(math.radians(angle))
+            beamX = self.x2 - self.width * math.sin(math.radians(angle))
+            beamY = self.y1 - self.width * math.cos(math.radians(angle))
         else: ## SE
             angle = self.angle
-            beamX = self.x1 - 40 * math.sin(math.radians(angle))
-            beamY = self.y1 - 40 * math.cos(math.radians(angle))
+            beamX = self.x1 - self.width * math.sin(math.radians(angle))
+            beamY = self.y1 - self.width * math.cos(math.radians(angle))
         currentMap.blit(b, (beamX, beamY))
 
 
@@ -556,8 +566,11 @@ def drawParticles():
         else:
             p.duration -= 1
             p.draw()
-            if isinstance(p, PunchParticle) or isinstance(p, BeamParticle):
+            if isinstance(p, PunchParticle):
                 p.checkDamage(enemyList)
+            elif isinstance(p, BeamParticle):
+                if p.duration < 10:
+                    p.checkDamage(enemyList)
         i += 1
 
 def reloadLevel():
