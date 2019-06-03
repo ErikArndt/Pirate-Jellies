@@ -7,12 +7,12 @@ EAST = 1
 SOUTH = 2
 WEST = 3
 
-mapSizes = ['dummy', (1500, 1500), (1500, 1250), (1100, 1100)]
-startpoints = ['dummy', (700, 1350), (100, 200), (550, 1050)]
-camStartpoints = ['dummy', (-300, -900), (0, 0), (-150, -500)]
+mapSizes = ['dummy', (1500, 1500), (1500, 1250), (1200, 1100), (1200, 1300)]
+startpoints = ['dummy', (700, 1350), (100, 200), (550, 1050), (600, 1200)]
+camStartpoints = ['dummy', (-300, -900), (0, 0), (-150, -500), (-200, -700)]
 nextLevelTriggers = ['dummy', (1400, 100, 100, 200), 
-                     (1300, 0, 100, 100), (450, 0, 200, 100)]
-numLevels = 3
+                     (1300, 0, 100, 100), (450, 0, 200, 100), (0, 0, 1, 1)]
+numLevels = 4
 
 
 class Wifi:
@@ -80,7 +80,8 @@ def loadBG(levelID):
         s.fill(pygame.Color('white'))
     elif levelID == 3: # level 3 bg
         s.fill(pygame.Color('white'))
-    ## No other levels atm
+    elif levelID == 4: # level 4 bg
+        s.fill(pygame.Color('white'))
     
     return s
 
@@ -118,17 +119,26 @@ def loadWalls(levelID):
                       collision.Wall(1400, 0, 100, 1250),
                       collision.Wall(800, 250, 100, 300)])
     elif levelID == 3: # level 3 Walls
-        walls.extend([collision.Wall(0, 0, 450, 200),
-                      collision.Wall(0, 200, 150, 300),
-                      collision.Wall(0, 700, 150, 300),
-                      collision.Wall(0, 1000, 500, 100),
-                      collision.Wall(650, 0, 450, 200),
-                      collision.Wall(950, 200, 150, 300),
-                      collision.Wall(950, 700, 150, 300),
-                      collision.Wall(600, 1000, 500, 100),
-                      collision.Wall(100, 600, 50, 100),
-                      collision.Wall(950, 600, 50, 100)])
-    ## No other levels atm
+        walls.extend([collision.Wall(50, 0, 450, 200),
+                      collision.Wall(50, 200, 150, 250),
+                      collision.Wall(50, 700, 150, 300),
+                      collision.Wall(50, 1000, 500, 100),
+                      collision.Wall(700, 0, 450, 200),
+                      collision.Wall(1000, 200, 150, 250),
+                      collision.Wall(1000, 700, 150, 300),
+                      collision.Wall(650, 1000, 500, 100),
+                      collision.Wall(150, 600, 50, 100),
+                      collision.Wall(1000, 600, 50, 100),
+                      collision.Wall(0, 0, 50, 1100),
+                      collision.Wall(1150, 0, 50, 1100)])
+    elif levelID == 4: # level 4 Walls
+        walls.extend([collision.Wall(0, 0, 100, 1300),
+                      collision.Wall(1100, 0, 100, 1300),
+                      collision.Wall(100, 0, 1000, 100),
+                      collision.Wall(100, 100, 400, 200),
+                      collision.Wall(700, 100, 400, 200),
+                      collision.Wall(100, 1100, 400, 200),
+                      collision.Wall(700, 1100, 400, 200)])
     
     return walls
 
@@ -149,6 +159,10 @@ def loadObjects(levelID):
     elif levelID == 3: # level 3 objects
         objects.extend([Wifi(150, 1000, 300),
                         Wifi(950, 1000, 300)])
+    elif levelID == 4: # level 4 objects
+        objects.extend([Wifi(600, 200, 200),
+                        Wifi(100, 300, 150),
+                        Wifi(1100, 300, 150)])
     
     return objects
 
