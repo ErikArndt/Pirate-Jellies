@@ -22,10 +22,11 @@ storyText = basicL.render('Story', False, pygame.Color('black'))
 backText = basicL.render('Back', False, pygame.Color('black'))
 
 storyString = "One day, Pirates attacked. Except they weren't any pirates. " \
-    + "They were pirate jellies! They decimated the main router of Town Town, " \
+    + "They were pirate jellies! They decimated the main router of the peaceful city of Hot Spot, " \
     + "destroying the city's wifi connectivity and mildly inconveniencing the "\
     + "populace. How awful! Luckily, the city's brave hero Captain Wifi is here to "\
-    + "bring those dastardly jellies to justice!"
+    + "bring those dastardly jellies to justice! Use the last remaining wifi hotspots"\
+    + " to power up Captain Wifi and save the day!"
 
 ## *************************
 
@@ -122,8 +123,8 @@ def draw(s):
         
         elif animTimers['MAIN'] > 0: # Main looping animation
             if animTimers['STORY'] > 0:
-                functions.drawText(s, storyString, pygame.Color('black'), (50, 50, 300, 400), \
-                         basicS)
+                functions.drawText(s, storyString, pygame.Color('black'), (50, 50, 350, 400), \
+                         basicS, True)
                 s.blit(byte, (50, 450))
                 s.blit(backText, (200, 450))
                 
@@ -131,7 +132,7 @@ def draw(s):
                 progress = animTimers['MAINtoSTORY']*10
                 s.blit(cap, (100, progress - 530))
                 s.blit(wf, (200, progress - 530 + cap.get_size()[1]))
-                functions.drawText(s, storyString, pygame.Color('black'), (50, progress + 50, 300, 400), \
+                functions.drawText(s, storyString, pygame.Color('black'), (50, progress + 50, 350, 400), \
                          basicS)
                 s.blit(byte, (50, progress + 450))
                 
@@ -146,7 +147,7 @@ def draw(s):
                 progress = 600 - animTimers['STORYtoMAIN']*10
                 s.blit(cap, (100, progress - 530))
                 s.blit(wf, (200, progress - 530 + cap.get_size()[1]))
-                functions.drawText(s, storyString, pygame.Color('black'), (50, progress + 50, 300, 400), \
+                functions.drawText(s, storyString, pygame.Color('black'), (50, progress + 50, 350, 400), \
                          basicS)
                 s.blit(byte, (50, progress + 450))
                 
