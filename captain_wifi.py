@@ -811,12 +811,12 @@ while running:
         winTxt3 = font1.render("Well, we do also have this dog", False, black)
         winTxt4 = font1.render("His name is Byte", False, black)
         winTxt5 = font1.render("He's a good boy", False, black)
-        win.blit(winTxt, (200, 50))
-        win.blit(winTxt2, (250, 200))
-        win.blit(winTxt3, (250, 250))
-        win.blit(menu.byte, (300, 300))
-        win.blit(winTxt4, (250, 475))
-        win.blit(winTxt5, (250, 525))
+        win.blit(winTxt, (400-winTxt.get_size()[0]/2, 50))
+        win.blit(winTxt2, (400-winTxt2.get_size()[0]/2, 200))
+        win.blit(winTxt3, (400-winTxt3.get_size()[0]/2, 250))
+        win.blit(menu.byte, (325, 300))
+        win.blit(winTxt4, (400-winTxt4.get_size()[0]/2, 475))
+        win.blit(winTxt5, (400-winTxt5.get_size()[0]/2, 525))
     
     pygame.display.update() # put this at the end of your main loop
 
