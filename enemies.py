@@ -171,6 +171,7 @@ class Jelly(Enemy):
         if self.health <= 0:
             self.die()
         else:
+            sounds[0].play()
             self.state = HURT
             self.animTimers['hurt'] = self.iFrames
         return
@@ -180,6 +181,7 @@ class Jelly(Enemy):
         Call when enemy health drops to 0 or lower. Plays death animation. 
         Currently does not remove enemy from enemies.
         '''
+        sounds[1].play()
         self.state = DIE
 
 class PirateJelly(Enemy):
@@ -325,6 +327,7 @@ class PirateJelly(Enemy):
         if self.health <= 0:
             self.die()
         else:
+            sounds[0].play()
             if self.health in [1,2,3,4,5,7,9,11,15,20,25,30]:
                 self.eList.append(Jelly(random.randint(self.x-self.xRad, self.x+self.xRad), random.randint(self.y-self.yRad, self.y+self.yRad)))
             self.state = HURT
@@ -336,6 +339,7 @@ class PirateJelly(Enemy):
         Call when enemy health drops to 0 or lower. Plays death animation. 
         Currently does not remove enemy from enemies.
         '''
+        sounds[1].play()
         self.state = DIE
 
 ## ******************** Sprites *************
@@ -344,9 +348,11 @@ jellySprites = []
 
 pirateSprites = []
 
+sounds = []
+
 def loadSprites():
     '''
-    Call this immediately after defining win
+    Call this immediately after defining win. It actually loads some sounds, too.
     '''
     jellySprites.extend([pygame.image.load('images/jellyU.png').convert_alpha(),
                          pygame.image.load('images/jellyR.png').convert_alpha(),
@@ -363,3 +369,6 @@ def loadSprites():
 
     for i in range(len(pirateSprites)):
         pirateSprites[i] = pygame.transform.scale(pirateSprites[i], (200, 150))
+    
+    sounds.append(pygame.mixer.Sound('jellyHurt.wav'))
+    sounds.append(pygame.mixer.Sound('jellyDead.wav'))

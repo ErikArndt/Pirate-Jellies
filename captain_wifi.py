@@ -41,9 +41,12 @@ PUNCH = 1 # punching
 BEAM = 2 # shooting beam
 DIE = 3 # playing the death animation
 
-## Sounds - these are just placeholders
-boop = pygame.mixer.Sound('boop.wav') # I'm told wav files work better than mp3's
-kaboom = pygame.mixer.Sound('kaboorn.wav')
+## Sounds
+hurt = pygame.mixer.Sound('hurt.wav')
+punch1 = pygame.mixer.Sound('punch1.wav')
+punch2 = pygame.mixer.Sound('punch2.wav')
+beam1 = pygame.mixer.Sound('beam1.wav')
+beam2 = pygame.mixer.Sound('beam2.wav')
 
 ## Fonts
 font1 = pygame.font.SysFont('timesnewroman', 24) # Currently only used for FPS
@@ -549,6 +552,7 @@ class player:
             self.facing = WEST
     
     def hurt(self, damage):
+        hurt.play()
         self.health -= damage
         if self.health <= 0:
             global gameState
@@ -558,9 +562,17 @@ class player:
     
     def punch(self):
         activeParticles.append(PunchParticle(self, self.connected))
+        if self.connected:
+            punch2.play()
+        else:
+            punch1.play()
 
     def shootBeam(self):
         activeParticles.append(BeamParticle(self, self.connected))
+        if self.connected:
+            beam2.play()
+        else:
+            beam1.play()
             
 def drawParticles():
     '''
@@ -635,7 +647,6 @@ while running:
                 
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1): # left mouse button
             if gameState == PLAYING and captain.state == FREE:
-                boop.play()
                 captain.checkFacing()
                 captain.punch()
             elif gameState == MENU:
@@ -652,7 +663,6 @@ while running:
         
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 3): # right mouse button
             if gameState == PLAYING and captain.state == FREE:
-                kaboom.play()
                 captain.checkFacing()
                 captain.shootBeam()
      
@@ -797,16 +807,16 @@ while running:
     elif gameState == WIN:
         win.fill(white)
         winTxt = menu.scribbleL.render('You win!', False, black)
-        winTxt2 = menu.basicS.render("That's all we have, sorry.", True, black)
-        winTxt3 = menu.basicS.render("Well, we do also have this dog", True, black)
-        winTxt4 = menu.basicS.render("His name is Byte", True, black)
-        winTxt5 = menu.basicS.render("He's a good boy", True, black)
-        win.blit(winTxt, (400-winTxt.get_size()[0]/2, 50))
-        win.blit(winTxt2, (400-winTxt2.get_size()[0]/2, 200))
-        win.blit(winTxt3, (400-winTxt3.get_size()[0]/2, 250))
-        win.blit(menu.byte, (325, 300))
-        win.blit(winTxt4, (400-winTxt4.get_size()[0]/2, 475))
-        win.blit(winTxt5, (400-winTxt5.get_size()[0]/2, 525))
+        winTxt2 = font1.render("That's all we have, sorry.", False, black)
+        winTxt3 = font1.render("Well, we do also have this dog", False, black)
+        winTxt4 = font1.render("His name is Byte", False, black)
+        winTxt5 = font1.render("He's a good boy", False, black)
+        win.blit(winTxt, (200, 50))
+        win.blit(winTxt2, (250, 200))
+        win.blit(winTxt3, (250, 250))
+        win.blit(menu.byte, (300, 300))
+        win.blit(winTxt4, (250, 475))
+        win.blit(winTxt5, (250, 525))
     
     pygame.display.update() # put this at the end of your main loop
 
